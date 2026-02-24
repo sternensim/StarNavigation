@@ -288,7 +288,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
         {/* Route polylines - one per leg with different colors */}
         {allRouteLegs.map((leg, idx) => (
           <Polyline
-            key={`leg-${idx}`}
+            key={`${selectedRouteId}-${idx}`}
             positions={leg.positions}
             color={leg.color}
             weight={leg.isDimmed ? 3 : 5}
