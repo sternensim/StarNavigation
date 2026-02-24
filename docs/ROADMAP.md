@@ -33,7 +33,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 ## Known Issues & Technical Debt
 
 ### Backend
-- [ ] **Skyfield Deprecation** - skyfield 1.46 uses deprecated numpy APIs (currently mitigated by numpy<2.0 pin)
+- [x] **Skyfield Deprecation** - Updated `skyfield` to `1.54` and removed `numpy<2.0` pin. Skyfield 1.48+ officially supports NumPy 2.0.
 - [ ] **No Persistent Storage** - Routes are calculated on-the-fly with no database
 - [ ] **Limited Error Handling** - Some edge cases may not be handled gracefully
 - [ ] **No Authentication** - API is completely open
@@ -57,7 +57,7 @@ The following table classifies all known issues by severity, category, and effor
 | 2 | **Dependency Vulnerabilities** | **High** | Security | Quick Win (hours) | **Fixed** - Resolved all vulnerabilities (including `minimatch` ReDoS) by updating `vite`, `eslint`, and using `npm overrides`. |
 | 3 | **No Route Persistence** | **Low** | Frontend | Quick Win (hours) | **Fixed** - Implemented `localStorage` persistence using `zustand/middleware`. |
 | 4 | Limited Mobile Responsiveness | **Medium** | Frontend/UI | Short-term (days) | **Address soon** - Improve CSS media queries and drawer behavior for better mobile experience. |
-| 5 | Skyfield Deprecation | **Medium** | Backend | Short-term (days) | **Monitor** - The `numpy<2.0` pin is a working mitigation. Plan for a full update when Skyfield supports NumPy 2.0. |
+| 5 | **Skyfield Deprecation** | **Medium** | Backend | Short-term (days) | **Fixed** - Updated `skyfield` to `1.54` and removed `numpy<2.0` pin. |
 | 6 | No Authentication | **Medium** | Backend/Security | Medium-term (weeks) | **Address soon** - Implement basic API key or JWT authentication if the API is to be exposed. |
 | 7 | Limited Error Handling | **Low** | Backend | Short-term (days) | **Address gradually** - Improve error handling incrementally as edge cases are discovered. |
 | 8 | No Persistent Storage | **Low** | Backend | Long-term (months) | **Nice to have** - Implement only if user accounts or route history features are prioritized. |
@@ -70,7 +70,6 @@ The following table classifies all known issues by severity, category, and effor
 
 **Short-term (Next Sprint):**
 - Mobile Responsiveness - CSS media queries.
-- Skyfield Deprecation - Monitor library updates.
 - Error Handling - Add try/catch blocks and validation.
 
 **Medium-term (Next Quarter):**
