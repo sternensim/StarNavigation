@@ -17,6 +17,7 @@ import 'leaflet/dist/leaflet.css';
 import { Box } from '@mui/material';
 import { useNavigationStore } from '../../store/navigationStore';
 import { Position, Waypoint } from '../../types';
+import { useRouteSimulation } from '../../hooks/useRouteSimulation';
 
 // Fix Leaflet default icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -51,6 +52,7 @@ const createCustomIcon = (color: string) => {
 const startIcon = createCustomIcon('#4caf50'); // Green
 const targetIcon = createCustomIcon('#f44336'); // Red
 const waypointIcon = createCustomIcon('#2196f3'); // Blue
+const simulationIcon = createCustomIcon('#ff9800'); // Orange for simulation
 
 // Map click handler component
 interface MapClickHandlerProps {
@@ -129,7 +131,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     mapZoom,
     selectedWaypoint,
     setSelectedWaypoint,
+    currentSimulationPosition,
   } = useNavigationStore();
+
+  // Initialize simulation hook
+  useRouteSimulation();
 
   // Color palette for route legs (distinct, visible colors)
   const LEG_COLORS = useMemo(
@@ -299,6 +305,23 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
             </Popup>
           </Marker>
         ))}
+
+        {/* Simulation marker */}
+        {currentSimulationPosition && (
+          <Marker
+            position={[currentSimulationPosition.latitude, currentSimulationPosition.longitude]}
+            icon={simulationIcon}
+            zIndexOffset={1000}
+          >
+            <Popup>
+              <div>
+                <strong>Current Position (Simulated)</strong>
+                <br />
+                {currentSimulationPosition.latitude.toFixed(4)}, {currentSimulationPosition.longitude.toFixed(4)}
+              </div>
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
 
       {/* Click mode indicator */}

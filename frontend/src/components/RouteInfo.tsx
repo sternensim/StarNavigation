@@ -32,6 +32,7 @@ import {
 import { NavigationResponse, Waypoint, StopReason } from '../types';
 import { navigationApi } from '../services/api';
 import { useNavigationStore } from '../store/navigationStore';
+import SimulationControls from './SimulationControls';
 
 // Color palette matching MapComponent
 const LEG_COLORS = [
@@ -174,6 +175,9 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
 
       {route && (
         <>
+          {/* Simulation Controls */}
+          <SimulationControls />
+
           {/* Route Statistics */}
           <Paper sx={{ p: 2, mb: 2 }}>
             <Typography variant="h6" gutterBottom>

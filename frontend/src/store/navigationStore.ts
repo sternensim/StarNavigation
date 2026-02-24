@@ -23,6 +23,12 @@ interface NavigationState {
   mapCenter: Position;
   mapZoom: number;
 
+  // Simulation state
+  isSimulating: boolean;
+  simulationProgress: number; // 0 to 1
+  simulationSpeed: number;
+  currentSimulationPosition: Position | null;
+
   // Time selection (for future implementation)
   selectedTime: Date | null;
   useCurrentTime: boolean;
@@ -46,6 +52,14 @@ interface NavigationState {
   setUseCurrentTime: (useCurrent: boolean) => void;
   setPrioritizeMajor: (prioritize: boolean) => void;
   setPlanetsOnly: (planetsOnly: boolean) => void;
+
+  // Simulation actions
+  setIsSimulating: (isSimulating: boolean) => void;
+  setSimulationProgress: (progress: number) => void;
+  setSimulationSpeed: (speed: number) => void;
+  setCurrentSimulationPosition: (position: Position | null) => void;
+  resetSimulation: () => void;
+
   clearRoute: () => void;
   reset: () => void;
 }
@@ -72,6 +86,10 @@ export const useNavigationStore = create<NavigationState>()(
       useCurrentTime: true,
       prioritizeMajor: false,
       planetsOnly: false,
+      isSimulating: false,
+      simulationProgress: 0,
+      simulationSpeed: 1,
+      currentSimulationPosition: null,
 
       // Actions
       setStartLocation: (location, name) => set({
@@ -126,11 +144,24 @@ export const useNavigationStore = create<NavigationState>()(
         prioritizeMajor: planetsOnly ? false : state.prioritizeMajor,
       })),
 
-      clearRoute: () => set({
-        route: null,
-        selectedWaypoint: null,
-        error: null,
+      setIsSimulating: (isSimulating) => set({ isSimulating }),
+      setSimulationProgress: (simulationProgress) => set({ simulationProgress }),
+      setSimulationSpeed: (simulationSpeed) => set({ simulationSpeed }),
+      setCurrentSimulationPosition: (currentSimulationPosition) => set({ currentSimulationPosition }),
+      resetSimulation: () => set({ 
+        isSimulating: false, 
+        simulationProgress: 0, 
+        currentSimulationPosition: null 
       }),
+
+      clearRoute: () => {
+        get().resetSimulation();
+        set({
+          route: null,
+          selectedWaypoint: null,
+          error: null,
+        });
+      },
 
       reset: () => set({
         startLocation: null,
@@ -147,6 +178,10 @@ export const useNavigationStore = create<NavigationState>()(
         useCurrentTime: true,
         prioritizeMajor: false,
         planetsOnly: false,
+        isSimulating: false,
+        simulationProgress: 0,
+        simulationSpeed: 1,
+        currentSimulationPosition: null,
       }),
     }),
     {
