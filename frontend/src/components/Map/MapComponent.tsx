@@ -155,11 +155,28 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     legIndex: number;
   }
 
-  // Calculate route legs (segments between consecutive waypoints)
+  // Calculate route legs (Leg 1: start to first waypoint, Leg 2+: between waypoints)
   const routeLegs = useMemo<RouteLeg[]>(() => {
-    if (!route?.waypoints || route.waypoints.length < 2) return [];
+    if (!route?.waypoints || route.waypoints.length === 0) return [];
     
     const legs: RouteLeg[] = [];
+    let legIndex = 0;
+    
+    // Leg 1: Start location to first waypoint
+    if (startLocation && route.waypoints.length > 0) {
+      const firstWaypoint = route.waypoints[0];
+      legs.push({
+        positions: [
+          [startLocation.latitude, startLocation.longitude] as L.LatLngExpression,
+          [firstWaypoint.position.latitude, firstWaypoint.position.longitude] as L.LatLngExpression,
+        ],
+        color: LEG_COLORS[legIndex % LEG_COLORS.length],
+        legIndex: legIndex,
+      });
+      legIndex++;
+    }
+    
+    // Leg 2+: Between consecutive waypoints
     for (let i = 0; i < route.waypoints.length - 1; i++) {
       const start = route.waypoints[i];
       const end = route.waypoints[i + 1];
@@ -168,12 +185,14 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
           [start.position.latitude, start.position.longitude] as L.LatLngExpression,
           [end.position.latitude, end.position.longitude] as L.LatLngExpression,
         ],
-        color: LEG_COLORS[i % LEG_COLORS.length],
-        legIndex: i,
+        color: LEG_COLORS[legIndex % LEG_COLORS.length],
+        legIndex: legIndex,
       });
+      legIndex++;
     }
+    
     return legs;
-  }, [route, LEG_COLORS]);
+  }, [route, LEG_COLORS, startLocation]);
 
   // Calculate bounds to fit route
   const fitBounds = useCallback(() => {
