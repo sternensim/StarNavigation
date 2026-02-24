@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: navigation-backend
+    volumes:
+      - skyfield_data:/app/skyfield_data
+    environment:
+      - ENV=production
+    networks:
+      - navigation-network
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: navigation-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - navigation-network
+    restart: always
+
+networks:
+  navigation-network:
+    driver: bridge
+
+volumes:
+  skyfield_data:
