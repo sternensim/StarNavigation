@@ -39,7 +39,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [ ] **No Authentication** - API is completely open
 
 ### Frontend
-- [x] **Dependency Vulnerabilities** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`.
+- [x] **Dependency Vulnerabilities** - Resolved all vulnerabilities (including `minimatch` ReDoS) by updating `vite`, `eslint`, and using `npm overrides`.
 - [ ] **No Offline Support** - Map requires internet connection
 - [ ] **Limited Mobile Responsiveness** - UI optimized for desktop
 - [x] **No Route Persistence** - Implemented `localStorage` persistence using `zustand/middleware`.
@@ -54,7 +54,7 @@ The following table classifies all known issues by severity, category, and effor
 | # | Issue | Severity | Category | Effort | Recommendation |
 |---|-------|----------|----------|--------|----------------|
 | 1 | **UI Overlay Issue** | **High** | UI/UX | Quick Win (hours) | **Fixed** - Added a spacer Toolbar in `App.tsx` to handle the fixed AppBar height dynamically. |
-| 2 | **Dependency Vulnerabilities** | **High** | Security | Quick Win (hours) | **Fixed** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`. |
+| 2 | **Dependency Vulnerabilities** | **High** | Security | Quick Win (hours) | **Fixed** - Resolved all vulnerabilities (including `minimatch` ReDoS) by updating `vite`, `eslint`, and using `npm overrides`. |
 | 3 | **No Route Persistence** | **Low** | Frontend | Quick Win (hours) | **Fixed** - Implemented `localStorage` persistence using `zustand/middleware`. |
 | 4 | Limited Mobile Responsiveness | **Medium** | Frontend/UI | Short-term (days) | **Address soon** - Improve CSS media queries and drawer behavior for better mobile experience. |
 | 5 | Skyfield Deprecation | **Medium** | Backend | Short-term (days) | **Monitor** - The `numpy<2.0` pin is a working mitigation. Plan for a full update when Skyfield supports NumPy 2.0. |
