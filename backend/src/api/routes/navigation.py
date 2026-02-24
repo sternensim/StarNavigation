@@ -97,29 +97,78 @@ async def calculate_route(request: NavigationRequest):
         
         # Route 3: Alternative (Exclude most used object from shortest)
         if request.max_routes > 2 and routes:
-            try:
-                excluded = set()
-                if routes[0].used_objects:
-                    excluded.add(routes[0].used_objects[0])
+            # Try different exclusion strategies to ensure we get a 3rd route
+            exclusion_strategies = []
+            
+            # Strategy 1: Exclude the first object of the shortest route
+            if routes[0].used_objects:
+                exclusion_strategies.append({routes[0].used_objects[0]})
+            
+            # Strategy 2: Exclude the first object of the second route (if different)
+            if len(routes) > 1 and routes[1].used_objects:
+                first_obj_r2 = routes[1].used_objects[0]
+                if not exclusion_strategies or first_obj_r2 not in exclusion_strategies[0]:
+                    exclusion_strategies.append({first_obj_r2})
+            
+            # Strategy 3: Exclude both first objects
+            if len(exclusion_strategies) > 1:
+                exclusion_strategies.append(exclusion_strategies[0] | exclusion_strategies[1])
+
+            success = False
+            for excluded in exclusion_strategies:
+                try:
+                    alt_route_3 = calculate_navigation_route(
+                        start_position=request.start,
+                        target_position=request.target,
+                        get_visible_objects_func=get_visible_objects,
+                        get_object_position_func=get_object_position,
+                        observation_time=observation_time,
+                        step_size_km=request.step_size_km,
+                        max_iterations=request.max_iterations,
+                        prioritize_major=request.prioritize_major,
+                        planets_only=request.planets_only,
+                        excluded_objects=excluded,
+                        optimize_for="shortest"
+                    )
                     
-                alt_route_3 = calculate_navigation_route(
-                    start_position=request.start,
-                    target_position=request.target,
-                    get_visible_objects_func=get_visible_objects,
-                    get_object_position_func=get_object_position,
-                    observation_time=observation_time,
-                    step_size_km=request.step_size_km,
-                    max_iterations=request.max_iterations,
-                    prioritize_major=request.prioritize_major,
-                    planets_only=request.planets_only,
-                    excluded_objects=excluded,
-                    optimize_for="shortest"
-                )
-                alt_route_3.id = "alternative"
-                alt_route_3.label = "Alternative Route"
-                routes.append(alt_route_3)
-            except NavigationError:
-                pass
+                    # Check if this route is actually different from existing ones
+                    is_duplicate = False
+                    for existing in routes:
+                        if (len(existing.waypoints) == len(alt_route_3.waypoints) and
+                            existing.used_objects == alt_route_3.used_objects):
+                            is_duplicate = True
+                            break
+                    
+                    if not is_duplicate:
+                        alt_route_3.id = "alternative"
+                        alt_route_3.label = "Alternative Route"
+                        routes.append(alt_route_3)
+                        success = True
+                        break
+                except NavigationError:
+                    continue
+            
+            # If still no 3rd route, try a different optimization or slightly different start
+            if not success:
+                try:
+                    # Try with a different optimization if not already tried
+                    alt_route_3 = calculate_navigation_route(
+                        start_position=request.start,
+                        target_position=request.target,
+                        get_visible_objects_func=get_visible_objects,
+                        get_object_position_func=get_object_position,
+                        observation_time=observation_time,
+                        step_size_km=request.step_size_km * 1.5, # Slightly different step size
+                        max_iterations=request.max_iterations,
+                        prioritize_major=not request.prioritize_major, # Flip prioritization
+                        planets_only=request.planets_only,
+                        optimize_for="shortest"
+                    )
+                    alt_route_3.id = "alternative"
+                    alt_route_3.label = "Alternative Route"
+                    routes.append(alt_route_3)
+                except NavigationError:
+                    pass
         
         # Sort routes by total distance to ensure "Shortest Path" is actually the shortest
         # and update labels accordingly
