@@ -120,6 +120,35 @@ async def calculate_route(request: NavigationRequest):
                 routes.append(alt_route_3)
             except NavigationError:
                 pass
+        
+        # Sort routes by total distance to ensure "Shortest Path" is actually the shortest
+        # and update labels accordingly
+        if routes:
+            # Sort by distance
+            routes.sort(key=lambda r: r.total_distance)
+            
+            # Re-assign labels based on properties
+            # The first one is now definitely the shortest
+            routes[0].label = "Shortest Path"
+            routes[0].id = "shortest"
+            
+            # If we have more, label them appropriately
+            if len(routes) > 1:
+                # Find the one with fewest waypoints (if it's not the shortest)
+                # We use a stable sort or just find the one with min waypoints
+                # that isn't already labeled as shortest
+                fewest_wp_route = min(routes, key=lambda r: len(r.waypoints))
+                
+                for i, r in enumerate(routes):
+                    if i == 0:
+                        continue # Already labeled as shortest
+                        
+                    if r == fewest_wp_route:
+                        r.label = "Fewest Waypoints"
+                        r.id = "least_changes"
+                    else:
+                        r.label = f"Alternative Route {i}"
+                        r.id = f"alternative_{i}"
                 
         return NavigationResponse(routes=routes)
         
