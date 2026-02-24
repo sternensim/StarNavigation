@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { useNavigationStore } from '../store/navigationStore';
 import { Position } from '../types';
+import { interpolateGeodesic } from '../utils/geodesic';
 
 export const useRouteSimulation = () => {
   const {
@@ -111,42 +112,7 @@ export const useRouteSimulation = () => {
       : (targetDist - currentDist) / segmentDistances.current[segmentIndex];
 
     // Geodesic interpolation (Spherical Linear Interpolation - Slerp)
-    // Convert to radians
-    const lat1 = (p1.latitude * Math.PI) / 180;
-    const lon1 = (p1.longitude * Math.PI) / 180;
-    const lat2 = (p2.latitude * Math.PI) / 180;
-    const lon2 = (p2.longitude * Math.PI) / 180;
-
-    // Angular distance between points
-    const d =
-      2 *
-      Math.asin(
-        Math.sqrt(
-          Math.pow(Math.sin((lat1 - lat2) / 2), 2) +
-            Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lon1 - lon2) / 2), 2)
-        )
-      );
-
-    let interpolatedPos: Position;
-
-    if (d === 0) {
-      interpolatedPos = { latitude: p1.latitude, longitude: p1.longitude };
-    } else {
-      const A = Math.sin((1 - segmentProgress) * d) / Math.sin(d);
-      const B = Math.sin(segmentProgress * d) / Math.sin(d);
-
-      const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
-      const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
-      const z = A * Math.sin(lat1) + B * Math.sin(lat2);
-
-      const lat = Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
-      const lon = Math.atan2(y, x);
-
-      interpolatedPos = {
-        latitude: (lat * 180) / Math.PI,
-        longitude: (lon * 180) / Math.PI,
-      };
-    }
+    const interpolatedPos = interpolateGeodesic(p1, p2, segmentProgress);
 
     setCurrentSimulationPosition(interpolatedPos);
   }, [simulationProgress]);

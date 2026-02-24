@@ -18,6 +18,7 @@ import { Box } from '@mui/material';
 import { useNavigationStore } from '../../store/navigationStore';
 import { Position, Waypoint } from '../../types';
 import { useRouteSimulation } from '../../hooks/useRouteSimulation';
+import { densifyGeodesic } from '../../utils/geodesic';
 
 // Fix Leaflet default icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -172,11 +173,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     // Leg 1: Start location to first waypoint
     if (startLocation && route.waypoints.length > 0) {
       const firstWaypoint = route.waypoints[0];
+      const densifiedPoints = densifyGeodesic(startLocation, firstWaypoint.position);
       legs.push({
-        positions: [
-          [startLocation.latitude, startLocation.longitude] as L.LatLngExpression,
-          [firstWaypoint.position.latitude, firstWaypoint.position.longitude] as L.LatLngExpression,
-        ],
+        positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
         color: LEG_COLORS[legIndex % LEG_COLORS.length],
         legIndex: legIndex,
       });
@@ -187,11 +186,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     for (let i = 0; i < route.waypoints.length - 1; i++) {
       const start = route.waypoints[i];
       const end = route.waypoints[i + 1];
+      const densifiedPoints = densifyGeodesic(start.position, end.position);
       legs.push({
-        positions: [
-          [start.position.latitude, start.position.longitude] as L.LatLngExpression,
-          [end.position.latitude, end.position.longitude] as L.LatLngExpression,
-        ],
+        positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
         color: LEG_COLORS[legIndex % LEG_COLORS.length],
         legIndex: legIndex,
       });
@@ -204,11 +201,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
       // Use the same color as the last leg (which is legIndex - 1)
       const lastColorIndex = (legIndex - 1 + LEG_COLORS.length) % LEG_COLORS.length;
       
+      const densifiedPoints = densifyGeodesic(lastWaypoint.position, targetLocation);
       legs.push({
-        positions: [
-          [lastWaypoint.position.latitude, lastWaypoint.position.longitude] as L.LatLngExpression,
-          [targetLocation.latitude, targetLocation.longitude] as L.LatLngExpression,
-        ],
+        positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
         color: LEG_COLORS[lastColorIndex],
         legIndex: legIndex,
         isDashed: true,
