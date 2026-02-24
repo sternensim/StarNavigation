@@ -26,6 +26,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Location Input** - Form for entering start/target coordinates
 - [x] **Route Information Panel** - Displays route details, statistics, and export options
 - [x] **Dependency Updates** - Updated ESLint and TypeScript dependencies
+- [x] **Dependency Vulnerabilities** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`.
 
 ---
 
@@ -38,7 +39,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [ ] **No Authentication** - API is completely open
 
 ### Frontend
-- [ ] **Dependency Vulnerabilities** - 15 npm vulnerabilities (2 moderate, 13 high) - mostly from dev dependencies
+- [x] **Dependency Vulnerabilities** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`.
 - [ ] **No Offline Support** - Map requires internet connection
 - [ ] **Limited Mobile Responsiveness** - UI optimized for desktop
 - [ ] **No Route Persistence** - Routes lost on page refresh
@@ -53,7 +54,7 @@ The following table classifies all known issues by severity, category, and effor
 | # | Issue | Severity | Category | Effort | Recommendation |
 |---|-------|----------|----------|--------|----------------|
 | 1 | **UI Overlay Issue** | **High** | UI/UX | Quick Win (hours) | **Fixed** - Added a spacer Toolbar in `App.tsx` to handle the fixed AppBar height dynamically. |
-| 2 | Dependency Vulnerabilities | **High** | Security | Quick Win (hours) | **Fix immediately** - Run `npm audit fix` to resolve. 13 high severity vulnerabilities pose security risks. |
+| 2 | **Dependency Vulnerabilities** | **High** | Security | Quick Win (hours) | **Fixed** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`. |
 | 3 | No Route Persistence | **Low** | Frontend | Quick Win (hours) | **Quick win** - Implement `localStorage` to save the last calculated route so it survives page refreshes. |
 | 4 | Limited Mobile Responsiveness | **Medium** | Frontend/UI | Short-term (days) | **Address soon** - Improve CSS media queries and drawer behavior for better mobile experience. |
 | 5 | Skyfield Deprecation | **Medium** | Backend | Short-term (days) | **Monitor** - The `numpy<2.0` pin is a working mitigation. Plan for a full update when Skyfield supports NumPy 2.0. |
