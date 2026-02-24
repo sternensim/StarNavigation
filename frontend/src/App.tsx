@@ -206,6 +206,8 @@ function App() {
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
                 width: DRAWER_WIDTH,
+                position: 'relative',
+                height: '100vh',
               },
             }}
             open
