@@ -42,7 +42,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Dependency Vulnerabilities** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`.
 - [ ] **No Offline Support** - Map requires internet connection
 - [ ] **Limited Mobile Responsiveness** - UI optimized for desktop
-- [ ] **No Route Persistence** - Routes lost on page refresh
+- [x] **No Route Persistence** - Implemented `localStorage` persistence using `zustand/middleware`.
 - [x] **UI Overlay Issue** - The "multibar" (AppBar) div is overlaying over the map and makes using it more difficult. We should make sure that there is no overlap.
 
 ---
@@ -55,7 +55,7 @@ The following table classifies all known issues by severity, category, and effor
 |---|-------|----------|----------|--------|----------------|
 | 1 | **UI Overlay Issue** | **High** | UI/UX | Quick Win (hours) | **Fixed** - Added a spacer Toolbar in `App.tsx` to handle the fixed AppBar height dynamically. |
 | 2 | **Dependency Vulnerabilities** | **High** | Security | Quick Win (hours) | **Fixed** - Resolved 6 vulnerabilities (2 moderate, 4 high) by updating `vite` and `eslint`. |
-| 3 | No Route Persistence | **Low** | Frontend | Quick Win (hours) | **Quick win** - Implement `localStorage` to save the last calculated route so it survives page refreshes. |
+| 3 | **No Route Persistence** | **Low** | Frontend | Quick Win (hours) | **Fixed** - Implemented `localStorage` persistence using `zustand/middleware`. |
 | 4 | Limited Mobile Responsiveness | **Medium** | Frontend/UI | Short-term (days) | **Address soon** - Improve CSS media queries and drawer behavior for better mobile experience. |
 | 5 | Skyfield Deprecation | **Medium** | Backend | Short-term (days) | **Monitor** - The `numpy<2.0` pin is a working mitigation. Plan for a full update when Skyfield supports NumPy 2.0. |
 | 6 | No Authentication | **Medium** | Backend/Security | Medium-term (weeks) | **Address soon** - Implement basic API key or JWT authentication if the API is to be exposed. |
@@ -66,9 +66,7 @@ The following table classifies all known issues by severity, category, and effor
 ### Priority Summary
 
 **Quick Wins (Do First):**
-- **UI Overlay Issue** - Simple CSS adjustment in `App.tsx`.
-- **Dependency Vulnerabilities** - Run `npm audit fix`.
-- **Route Persistence** - Add `localStorage` support in `navigationStore.ts`.
+- All quick wins completed.
 
 **Short-term (Next Sprint):**
 - Mobile Responsiveness - CSS media queries.

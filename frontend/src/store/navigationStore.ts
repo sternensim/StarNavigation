@@ -2,6 +2,7 @@
  * Zustand store for navigation state management
  */
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { Position, NavigationResponse, Waypoint, CelestialObject } from '../types';
 
 interface NavigationState {
@@ -46,83 +47,100 @@ interface NavigationState {
 // Default center (Berlin)
 const DEFAULT_CENTER: Position = { latitude: 52.52, longitude: 13.405 };
 
-export const useNavigationStore = create<NavigationState>((set, get) => ({
-  // Initial state
-  startLocation: null,
-  targetLocation: null,
-  startLocationName: '',
-  targetLocationName: '',
-  route: null,
-  isCalculating: false,
-  error: null,
-  selectedWaypoint: null,
-  sidebarOpen: true,
-  mapCenter: DEFAULT_CENTER,
-  mapZoom: 5,
-  selectedTime: null,
-  useCurrentTime: true,
-
-  // Actions
-  setStartLocation: (location, name) => set({
-    startLocation: location,
-    startLocationName: name || (location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : ''),
-  }),
-
-  setTargetLocation: (location, name) => set({
-    targetLocation: location,
-    targetLocationName: name || (location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : ''),
-  }),
-
-  swapLocations: () => {
-    const { startLocation, targetLocation, startLocationName, targetLocationName } = get();
-    set({
-      startLocation: targetLocation,
-      targetLocation: startLocation,
-      startLocationName: targetLocationName,
-      targetLocationName: startLocationName,
+export const useNavigationStore = create<NavigationState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      startLocation: null,
+      targetLocation: null,
+      startLocationName: '',
+      targetLocationName: '',
       route: null,
-    });
-  },
+      isCalculating: false,
+      error: null,
+      selectedWaypoint: null,
+      sidebarOpen: true,
+      mapCenter: DEFAULT_CENTER,
+      mapZoom: 5,
+      selectedTime: null,
+      useCurrentTime: true,
 
-  setRoute: (route) => set({ route, error: null }),
+      // Actions
+      setStartLocation: (location, name) => set({
+        startLocation: location,
+        startLocationName: name || (location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : ''),
+      }),
 
-  setIsCalculating: (isCalculating) => set({ isCalculating }),
+      setTargetLocation: (location, name) => set({
+        targetLocation: location,
+        targetLocationName: name || (location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : ''),
+      }),
 
-  setError: (error) => set({ error, isCalculating: false }),
+      swapLocations: () => {
+        const { startLocation, targetLocation, startLocationName, targetLocationName } = get();
+        set({
+          startLocation: targetLocation,
+          targetLocation: startLocation,
+          startLocationName: targetLocationName,
+          targetLocationName: startLocationName,
+          route: null,
+        });
+      },
 
-  setSelectedWaypoint: (waypoint) => set({ selectedWaypoint: waypoint }),
+      setRoute: (route) => set({ route, error: null }),
 
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+      setIsCalculating: (isCalculating) => set({ isCalculating }),
 
-  setMapCenter: (center) => set({ mapCenter: center }),
+      setError: (error) => set({ error, isCalculating: false }),
 
-  setMapZoom: (zoom) => set({ mapZoom: zoom }),
+      setSelectedWaypoint: (waypoint) => set({ selectedWaypoint: waypoint }),
 
-  setSelectedTime: (time) => set({ selectedTime: time }),
+      setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-  setUseCurrentTime: (useCurrent) => set({
-    useCurrentTime: useCurrent,
-    selectedTime: useCurrent ? null : get().selectedTime,
-  }),
+      setMapCenter: (center) => set({ mapCenter: center }),
 
-  clearRoute: () => set({
-    route: null,
-    selectedWaypoint: null,
-    error: null,
-  }),
+      setMapZoom: (zoom) => set({ mapZoom: zoom }),
 
-  reset: () => set({
-    startLocation: null,
-    targetLocation: null,
-    startLocationName: '',
-    targetLocationName: '',
-    route: null,
-    isCalculating: false,
-    error: null,
-    selectedWaypoint: null,
-    mapCenter: DEFAULT_CENTER,
-    mapZoom: 5,
-    selectedTime: null,
-    useCurrentTime: true,
-  }),
-}));
+      setSelectedTime: (time) => set({ selectedTime: time }),
+
+      setUseCurrentTime: (useCurrent) => set({
+        useCurrentTime: useCurrent,
+        selectedTime: useCurrent ? null : get().selectedTime,
+      }),
+
+      clearRoute: () => set({
+        route: null,
+        selectedWaypoint: null,
+        error: null,
+      }),
+
+      reset: () => set({
+        startLocation: null,
+        targetLocation: null,
+        startLocationName: '',
+        targetLocationName: '',
+        route: null,
+        isCalculating: false,
+        error: null,
+        selectedWaypoint: null,
+        mapCenter: DEFAULT_CENTER,
+        mapZoom: 5,
+        selectedTime: null,
+        useCurrentTime: true,
+      }),
+    }),
+    {
+      name: 'navigation-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        startLocation: state.startLocation,
+        targetLocation: state.targetLocation,
+        startLocationName: state.startLocationName,
+        targetLocationName: state.targetLocationName,
+        route: state.route,
+        mapCenter: state.mapCenter,
+        mapZoom: state.mapZoom,
+      }),
+    }
+  )
+);
