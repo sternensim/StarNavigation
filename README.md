@@ -62,6 +62,33 @@ npm install
 npm run dev
 ```
 
+## Docker Deployment
+
+For a quick and easy setup using Docker, follow these steps:
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Build and Start
+
+Run the following command in the project root directory:
+
+```bash
+docker-compose up --build
+```
+
+Once the containers are running, you can access the application at:
+[http://localhost](http://localhost)
+
+### Architecture
+
+The Docker deployment consists of three main components:
+- **FastAPI Backend**: Handles the celestial navigation logic and API requests.
+- **Vite Frontend**: Provides the interactive user interface.
+- **Nginx Proxy**: Acts as a reverse proxy, routing traffic to the frontend and backend services.
+
 ## Features
 
 - 🗺️ Interactive map with Leaflet
