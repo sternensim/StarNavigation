@@ -184,12 +184,12 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         
         <Box sx={{ px: 1, mt: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            Max Alternative Routes: {maxRoutes}
+            Max Routes: {maxRoutes}
           </Typography>
           <Slider
             value={maxRoutes}
             min={1}
-            max={3}
+            max={5}
             step={1}
             marks
             onChange={(_, v) => setMaxRoutes(v as number)}
