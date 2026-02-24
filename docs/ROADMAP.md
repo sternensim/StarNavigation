@@ -42,7 +42,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [ ] **No Offline Support** - Map requires internet connection
 - [ ] **Limited Mobile Responsiveness** - UI optimized for desktop
 - [ ] **No Route Persistence** - Routes lost on page refresh
-- [x] **[FIXED] UI Overlay Issue - Multibar covers map** - The multibar div is overlaying over the map and makes using it more difficult *(Fixed: 2026-02-24, commit: e06d81a)*
+- [x] **UI Overlay Issue** - The "multibar" (AppBar) div is overlaying over the map and makes using it more difficult. We should make sure that there is no overlap.
 
 ---
 
@@ -52,34 +52,34 @@ The following table classifies all known issues by severity, category, and effor
 
 | # | Issue | Severity | Category | Effort | Recommendation |
 |---|-------|----------|----------|--------|----------------|
-| 1 | ~~UI Overlay Issue - Multibar covers map~~ ✅ **COMPLETED** | **High** | UI/UX | Quick Win (hours) | ~~**Fix immediately** - Simple CSS fix to adjust z-index or reposition the multibar. This directly impacts user experience and usability.~~ *(Fixed: 2026-02-24, commit: e06d81a)* |
-| 2 | Dependency Vulnerabilities (15 npm issues) | **High** | Security | Quick Win (hours) | **Fix immediately** - Run `npm audit fix` to resolve. 13 high severity vulnerabilities pose security risks. |
-| 3 | No Authentication | **Medium** | Backend/Security | Medium-term (weeks) | **Address soon** - Implement basic API key or JWT authentication. Important for production deployment but not blocking for development. |
-| 4 | Limited Mobile Responsiveness | **Medium** | Frontend/UI | Short-term (days) | **Address soon** - Add responsive CSS breakpoints. Important for accessibility but desktop currently works. |
-| 5 | Skyfield Deprecation | **Medium** | Backend | Short-term (days) | **Address when convenient** - Monitor skyfield updates; the numpy<2.0 pin is a working mitigation. Not urgent but should be resolved before numpy 1.x EOL. |
-| 6 | No Persistent Storage | **Low** | Backend | Long-term (months) | **Nice to have** - Implement only if user accounts or route history features are prioritized. Currently stateless architecture is acceptable. |
-| 7 | No Offline Support | **Low** | Frontend | Long-term (months) | **Nice to have** - Would require service workers and map tile caching. Consider if targeting areas with poor connectivity. |
-| 8 | Limited Error Handling | **Low** | Backend | Short-term (days) | **Address gradually** - Improve error handling incrementally as edge cases are discovered. Not blocking core functionality. |
-| 9 | No Route Persistence | **Low** | Frontend | Short-term (days) | **Nice to have** - Could use localStorage as a quick fix. Currently users can re-calculate routes quickly. |
+| 1 | **UI Overlay Issue** | **High** | UI/UX | Quick Win (hours) | **Fixed** - Added a spacer Toolbar in `App.tsx` to handle the fixed AppBar height dynamically. |
+| 2 | Dependency Vulnerabilities | **High** | Security | Quick Win (hours) | **Fix immediately** - Run `npm audit fix` to resolve. 13 high severity vulnerabilities pose security risks. |
+| 3 | No Route Persistence | **Low** | Frontend | Quick Win (hours) | **Quick win** - Implement `localStorage` to save the last calculated route so it survives page refreshes. |
+| 4 | Limited Mobile Responsiveness | **Medium** | Frontend/UI | Short-term (days) | **Address soon** - Improve CSS media queries and drawer behavior for better mobile experience. |
+| 5 | Skyfield Deprecation | **Medium** | Backend | Short-term (days) | **Monitor** - The `numpy<2.0` pin is a working mitigation. Plan for a full update when Skyfield supports NumPy 2.0. |
+| 6 | No Authentication | **Medium** | Backend/Security | Medium-term (weeks) | **Address soon** - Implement basic API key or JWT authentication if the API is to be exposed. |
+| 7 | Limited Error Handling | **Low** | Backend | Short-term (days) | **Address gradually** - Improve error handling incrementally as edge cases are discovered. |
+| 8 | No Persistent Storage | **Low** | Backend | Long-term (months) | **Nice to have** - Implement only if user accounts or route history features are prioritized. |
+| 9 | No Offline Support | **Low** | Frontend | Long-term (months) | **Nice to have** - Would require service workers and map tile caching. |
 
 ### Priority Summary
 
 **Quick Wins (Do First):**
-- UI Overlay Issue - Simple CSS adjustment
-- Dependency Vulnerabilities - Run npm audit fix
+- **UI Overlay Issue** - Simple CSS adjustment in `App.tsx`.
+- **Dependency Vulnerabilities** - Run `npm audit fix`.
+- **Route Persistence** - Add `localStorage` support in `navigationStore.ts`.
 
 **Short-term (Next Sprint):**
-- Mobile Responsiveness - CSS media queries
-- Skyfield Deprecation - Monitor library updates
-- Error Handling - Add try/catch blocks and validation
+- Mobile Responsiveness - CSS media queries.
+- Skyfield Deprecation - Monitor library updates.
+- Error Handling - Add try/catch blocks and validation.
 
 **Medium-term (Next Quarter):**
-- Authentication - Implement basic auth for API protection
+- Authentication - Implement basic auth for API protection.
 
 **Long-term / Nice to Have:**
-- Persistent Storage - Only if needed for user features
-- Offline Support - Major effort, evaluate need
-- Route Persistence - localStorage could be a quick win alternative
+- Persistent Storage - Only if needed for user features.
+- Offline Support - Major effort, evaluate need.
 
 ---
 

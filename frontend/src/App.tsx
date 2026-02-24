@@ -223,10 +223,14 @@ function App() {
             flexGrow: 1,
             width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
             height: '100vh',
-            mt: { xs: 8, md: 0 },
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <MapComponent clickMode={clickMode} onMapClick={handleMapClick} />
+          <Toolbar />
+          <Box sx={{ flexGrow: 1, position: 'relative' }}>
+            <MapComponent clickMode={clickMode} onMapClick={handleMapClick} />
+          </Box>
         </Box>
 
         {/* Error Snackbar */}
