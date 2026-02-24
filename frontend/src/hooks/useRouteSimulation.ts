@@ -110,10 +110,43 @@ export const useRouteSimulation = () => {
       ? 0 
       : (targetDist - currentDist) / segmentDistances.current[segmentIndex];
 
-    const interpolatedPos: Position = {
-      latitude: p1.latitude + (p2.latitude - p1.latitude) * segmentProgress,
-      longitude: p1.longitude + (p2.longitude - p1.longitude) * segmentProgress,
-    };
+    // Geodesic interpolation (Spherical Linear Interpolation - Slerp)
+    // Convert to radians
+    const lat1 = (p1.latitude * Math.PI) / 180;
+    const lon1 = (p1.longitude * Math.PI) / 180;
+    const lat2 = (p2.latitude * Math.PI) / 180;
+    const lon2 = (p2.longitude * Math.PI) / 180;
+
+    // Angular distance between points
+    const d =
+      2 *
+      Math.asin(
+        Math.sqrt(
+          Math.pow(Math.sin((lat1 - lat2) / 2), 2) +
+            Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lon1 - lon2) / 2), 2)
+        )
+      );
+
+    let interpolatedPos: Position;
+
+    if (d === 0) {
+      interpolatedPos = { latitude: p1.latitude, longitude: p1.longitude };
+    } else {
+      const A = Math.sin((1 - segmentProgress) * d) / Math.sin(d);
+      const B = Math.sin(segmentProgress * d) / Math.sin(d);
+
+      const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
+      const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
+      const z = A * Math.sin(lat1) + B * Math.sin(lat2);
+
+      const lat = Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+      const lon = Math.atan2(y, x);
+
+      interpolatedPos = {
+        latitude: (lat * 180) / Math.PI,
+        longitude: (lon * 180) / Math.PI,
+      };
+    }
 
     setCurrentSimulationPosition(interpolatedPos);
   }, [simulationProgress]);
