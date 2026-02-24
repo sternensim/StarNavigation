@@ -153,9 +153,10 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     positions: L.LatLngExpression[];
     color: string;
     legIndex: number;
+    isDashed?: boolean;
   }
 
-  // Calculate route legs (Leg 1: start to first waypoint, Leg 2+: between waypoints)
+  // Calculate route legs (Leg 1: start to first waypoint, Leg 2+: between waypoints, Final: last waypoint to target)
   const routeLegs = useMemo<RouteLeg[]>(() => {
     if (!route?.waypoints || route.waypoints.length === 0) return [];
     
@@ -190,9 +191,26 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
       });
       legIndex++;
     }
+
+    // Final Leg: Last waypoint to target location (dotted)
+    if (targetLocation && route.waypoints.length > 0) {
+      const lastWaypoint = route.waypoints[route.waypoints.length - 1];
+      // Use the same color as the last leg (which is legIndex - 1)
+      const lastColorIndex = (legIndex - 1 + LEG_COLORS.length) % LEG_COLORS.length;
+      
+      legs.push({
+        positions: [
+          [lastWaypoint.position.latitude, lastWaypoint.position.longitude] as L.LatLngExpression,
+          [targetLocation.latitude, targetLocation.longitude] as L.LatLngExpression,
+        ],
+        color: LEG_COLORS[lastColorIndex],
+        legIndex: legIndex,
+        isDashed: true,
+      });
+    }
     
     return legs;
-  }, [route, LEG_COLORS, startLocation]);
+  }, [route, LEG_COLORS, startLocation, targetLocation]);
 
   // Calculate bounds to fit route
   const fitBounds = useCallback(() => {
@@ -262,6 +280,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
             opacity={0.9}
             lineCap="round"
             lineJoin="round"
+            dashArray={leg.isDashed ? "5, 10" : undefined}
           />
         ))}
 
