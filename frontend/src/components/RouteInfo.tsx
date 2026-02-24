@@ -187,24 +187,39 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
           </Paper>
 
           {/* Route Legs Legend */}
-          {route.waypoints.length > 1 && (
+          {route.waypoints.length > 0 && (
             <Paper sx={{ p: 2, mb: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Route Legs
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {/* Leg 1: Start to first waypoint */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 4,
+                      borderRadius: 1,
+                      backgroundColor: LEG_COLORS[0],
+                    }}
+                  />
+                  <Typography variant="body2">
+                    Leg 1: Start → Waypoint 1
+                  </Typography>
+                </Box>
+                {/* Leg 2+: Between waypoints */}
                 {route.waypoints.slice(0, -1).map((_, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box key={index + 1} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
                       sx={{
                         width: 24,
                         height: 4,
                         borderRadius: 1,
-                        backgroundColor: LEG_COLORS[index % LEG_COLORS.length],
+                        backgroundColor: LEG_COLORS[(index + 1) % LEG_COLORS.length],
                       }}
                     />
                     <Typography variant="body2">
-                      Leg {index + 1}: Waypoint {index + 1} → {index + 2}
+                      Leg {index + 2}: Waypoint {index + 1} → {index + 2}
                     </Typography>
                   </Box>
                 ))}
