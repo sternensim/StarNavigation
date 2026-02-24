@@ -3,11 +3,16 @@ StarNavigation Backend - FastAPI Application
 
 Main entry point for the FastAPI application.
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import logging
 
 from .api.routes import navigation, celestial
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
@@ -23,11 +28,23 @@ def create_app() -> FastAPI:
     # Configure CORS for frontend
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite and common dev ports
+        allow_origins=["*"],  # Allow all for easier local testing, restrict in production
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Global exception handler
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        logger.error(f"Unhandled exception: {exc}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": "An internal server error occurred.",
+                "type": type(exc).__name__
+            }
+        )
     
     # Include routers
     app.include_router(navigation.router, prefix="/api/v1")

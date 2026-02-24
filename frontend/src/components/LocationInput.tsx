@@ -66,6 +66,10 @@ const LocationInput: React.FC<LocationInputProps> = ({
     try {
       const results = await geocodingApi.search(query);
       setSearchResults(results);
+      if (results.length === 0) {
+        // We could use a toast here if we had a global one
+        console.log('No results found');
+      }
     } catch (error) {
       console.error('Search failed:', error);
       setSearchResults([]);
@@ -104,7 +108,14 @@ const LocationInput: React.FC<LocationInputProps> = ({
         },
         (error) => {
           console.error('Geolocation error:', error);
-          alert('Could not get your location. Please check permissions.');
+          let msg = 'Could not get your location.';
+          if (error.code === error.PERMISSION_DENIED) msg += ' Permission denied.';
+          else if (error.code === error.POSITION_UNAVAILABLE) msg += ' Position unavailable.';
+          else if (error.code === error.TIMEOUT) msg += ' Request timed out.';
+          
+          // Ideally this would use the global error state in App.tsx
+          // For now, we'll keep the alert but make it more descriptive
+          alert(msg);
         }
       );
     } else {
@@ -208,7 +219,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
       </Box>
 
       {/* Action buttons for start */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2 }}>
         <Button
           variant={clickMode === 'start' ? 'contained' : 'outlined'}
           size="small"
@@ -225,6 +236,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
           size="small"
           startIcon={<MyLocationIcon />}
           onClick={handleUseCurrentLocation}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Current
         </Button>

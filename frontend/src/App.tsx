@@ -67,7 +67,10 @@ function App() {
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
-    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleCloseMobileDrawer = () => {
+    setMobileOpen(false);
   };
 
   const handleMapClick = useCallback((position: Position) => {
@@ -88,6 +91,7 @@ function App() {
 
     setIsCalculating(true);
     clearRoute();
+    setMobileOpen(false); // Close drawer on mobile when starting calculation
 
     try {
       const response = await navigationApi.calculateRoute({
@@ -118,10 +122,18 @@ function App() {
 
   const drawerContent = (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <NavigationIcon />
-        StarNavigation
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <NavigationIcon />
+          StarNavigation
+        </Typography>
+        <IconButton 
+          onClick={handleCloseMobileDrawer}
+          sx={{ display: { md: 'none' } }}
+        >
+          <MenuIcon />
+        </IconButton>
+      </Box>
 
       <LocationInput
         startLocation={startLocation}
@@ -130,7 +142,10 @@ function App() {
         targetLocationName={targetLocationName}
         onStartLocationChange={setStartLocation}
         onTargetLocationChange={setTargetLocation}
-        onMapClickModeChange={setClickMode}
+        onMapClickModeChange={(mode) => {
+          setClickMode(mode);
+          if (mode) setMobileOpen(false); // Close drawer when entering map click mode
+        }}
         clickMode={clickMode}
         onSwapLocations={() => {
           useNavigationStore.getState().swapLocations();
@@ -191,7 +206,7 @@ function App() {
               display: { xs: 'block', md: 'none' },
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
-                width: DRAWER_WIDTH,
+                width: { xs: '100%', sm: DRAWER_WIDTH },
               },
             }}
           >

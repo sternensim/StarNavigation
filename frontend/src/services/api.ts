@@ -21,6 +21,19 @@ const api = axios.create({
   },
 });
 
+// Add a response interceptor for global error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = error.response?.data?.detail || error.message || 'An unexpected error occurred';
+    // We can't use hooks here, but we can throw a formatted error
+    const formattedError = new Error(message);
+    (formattedError as any).status = error.response?.status;
+    (formattedError as any).data = error.response?.data;
+    return Promise.reject(formattedError);
+  }
+);
+
 export const navigationApi = {
   /**
    * Calculate a navigation route between two positions
