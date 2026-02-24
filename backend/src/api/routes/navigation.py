@@ -57,7 +57,8 @@ async def calculate_route(request: NavigationRequest):
             get_object_position_func=get_object_position,
             observation_time=observation_time,
             step_size_km=request.step_size_km,
-            max_iterations=request.max_iterations
+            max_iterations=request.max_iterations,
+            prioritize_major=request.prioritize_major
         )
         
         return result

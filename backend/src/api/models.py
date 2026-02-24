@@ -45,6 +45,7 @@ class NavigationRequest(BaseModel):
     observation_time: Optional[datetime] = Field(None, description="Observation time (default: now)")
     step_size_km: float = Field(10.0, gt=0, le=100, description="Step size in km for following objects")
     max_iterations: int = Field(100, ge=10, le=1000, description="Maximum navigation iterations")
+    prioritize_major: bool = Field(False, description="Give priority to planets and major navigational stars")
 
 
 class NavigationResponse(BaseModel):

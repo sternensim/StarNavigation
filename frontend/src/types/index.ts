@@ -36,6 +36,7 @@ export interface NavigationRequest {
   observation_time?: string;
   step_size_km?: number;
   max_iterations?: number;
+  prioritize_major?: boolean;
 }
 
 export interface NavigationResponse {

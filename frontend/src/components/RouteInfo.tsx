@@ -17,6 +17,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   PlayArrow as PlayIcon,
@@ -29,6 +31,7 @@ import {
 
 import { NavigationResponse, Waypoint, StopReason } from '../types';
 import { navigationApi } from '../services/api';
+import { useNavigationStore } from '../store/navigationStore';
 
 // Color palette matching MapComponent
 const LEG_COLORS = [
@@ -74,6 +77,8 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   onCalculate,
   waypoints,
 }) => {
+  const { prioritizeMajor, setPrioritizeMajor } = useNavigationStore();
+
   const handleExportGpx = async () => {
     if (!route?.waypoints) return;
 
@@ -132,6 +137,25 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
       >
         {isCalculating ? 'Calculating...' : 'Calculate Route'}
       </Button>
+
+      {/* Settings */}
+      <Paper sx={{ p: 1, mb: 2 }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={prioritizeMajor}
+              onChange={(e) => setPrioritizeMajor(e.target.checked)}
+              color="primary"
+            />
+          }
+          label={
+            <Typography variant="body2">
+              Prioritize Planets and Major Stars
+            </Typography>
+          }
+          sx={{ ml: 0 }}
+        />
+      </Paper>
 
       {route && (
         <>

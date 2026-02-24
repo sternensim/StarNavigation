@@ -16,6 +16,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **GeoJSON Export** - Route export in GeoJSON format
 - [x] **NumPy Compatibility Fix** - Pinned numpy<2.0 for skyfield compatibility
 - [x] **Skyfield Update** - Updated to 1.54 to support NumPy 2.0 natively.
+- [x] **Prioritize Planets and Major Stars** - Added a mode to prefer navigational stars and planets as waypoints.
 
 ### Frontend (React/TypeScript/Leaflet)
 - [x] **Interactive Map** - Leaflet-based map with OpenStreetMap tiles
@@ -30,6 +31,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Dependency Vulnerabilities** - Resolved all vulnerabilities using npm overrides.
 - [x] **Route Persistence** - Implemented localStorage persistence.
 - [x] **Mobile Responsiveness** - Improved drawer and control behavior for mobile devices.
+- [x] **Prioritize Major Stars Toggle** - Added UI control for the new navigation mode.
 
 ---
 
@@ -86,6 +88,7 @@ The following table classifies all known issues by severity, category, and effor
 ## Planned Enhancements
 
 ### High Priority
+- [x] **Prioritize Planets and Major Stars mode** - Prefer navigational stars and planets as waypoints.
 - [ ] **Route Simulation/Animation** - Visualize travel along the route with animated marker
 - [ ] **Current Position Tracking** - Show user's current position relative to route
 - [ ] **Progress Indicators** - Show distance traveled, distance remaining, ETA

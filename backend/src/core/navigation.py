@@ -10,6 +10,7 @@ from typing import List, Set, Tuple, Optional
 from dataclasses import dataclass, field
 
 from ..api.models import Position, CelestialObject, Waypoint, NavigationResponse
+from ..data.celestial import NAVIGATIONAL_STARS
 
 
 # Earth's radius in kilometers
@@ -128,7 +129,8 @@ def circular_distance(angle1: float, angle2: float) -> float:
 
 def select_best_celestial_object(
     target_bearing: float,
-    visible_objects: List[CelestialObject]
+    visible_objects: List[CelestialObject],
+    prioritize_major: bool = False
 ) -> Optional[CelestialObject]:
     """
     Select the visible celestial object whose azimuth is closest to the target bearing.
@@ -136,6 +138,7 @@ def select_best_celestial_object(
     Args:
         target_bearing: Desired compass direction in degrees
         visible_objects: List of visible celestial objects with azimuth calculated
+        prioritize_major: If True, give a bonus to planets and navigational stars
         
     Returns:
         The best matching celestial object, or None if no objects available
@@ -144,15 +147,27 @@ def select_best_celestial_object(
         return None
     
     best_object = None
-    min_angular_distance = 360.0
+    min_score = 360.0
     
     for obj in visible_objects:
         if obj.azimuth is None:
             continue
-        angular_distance = circular_distance(obj.azimuth, target_bearing)
         
-        if angular_distance < min_angular_distance:
-            min_angular_distance = angular_distance
+        angular_distance = circular_distance(obj.azimuth, target_bearing)
+        score = angular_distance
+        
+        # Apply bonus for planets and navigational stars if prioritization is enabled
+        if prioritize_major:
+            is_planet = obj.object_type in ["planet", "moon", "sun"]
+            is_nav_star = obj.name in NAVIGATIONAL_STARS
+            
+            if is_planet or is_nav_star:
+                # Give a significant bonus (e.g., reduce score by 30 degrees)
+                # This makes a major object 30 degrees "closer" to the target bearing than it actually is
+                score = max(0, angular_distance - 30.0)
+        
+        if score < min_score:
+            min_score = score
             best_object = obj
     
     return best_object
@@ -266,7 +281,8 @@ def calculate_navigation_route(
     get_object_position_func,
     observation_time: datetime,
     step_size_km: float = 10.0,
-    max_iterations: int = 100
+    max_iterations: int = 100,
+    prioritize_major: bool = False
 ) -> NavigationResponse:
     """
     Main navigation algorithm using celestial objects as reference points.
@@ -279,6 +295,7 @@ def calculate_navigation_route(
         observation_time: Starting observation time
         step_size_km: Step size for following objects
         max_iterations: Maximum number of object switches
+        prioritize_major: If True, give a bonus to planets and navigational stars
         
     Returns:
         NavigationResponse with waypoints and statistics
@@ -343,7 +360,7 @@ def calculate_navigation_route(
             )
         
         # Step 3: Select best matching object
-        best_object = select_best_celestial_object(target_bearing, visible_objects)
+        best_object = select_best_celestial_object(target_bearing, visible_objects, prioritize_major)
         
         if not best_object:
             raise NavigationError("Could not find suitable celestial reference")

@@ -27,6 +27,9 @@ interface NavigationState {
   selectedTime: Date | null;
   useCurrentTime: boolean;
 
+  // Navigation settings
+  prioritizeMajor: boolean;
+
   // Actions
   setStartLocation: (location: Position | null, name?: string) => void;
   setTargetLocation: (location: Position | null, name?: string) => void;
@@ -40,6 +43,7 @@ interface NavigationState {
   setMapZoom: (zoom: number) => void;
   setSelectedTime: (time: Date | null) => void;
   setUseCurrentTime: (useCurrent: boolean) => void;
+  setPrioritizeMajor: (prioritize: boolean) => void;
   clearRoute: () => void;
   reset: () => void;
 }
@@ -64,6 +68,7 @@ export const useNavigationStore = create<NavigationState>()(
       mapZoom: 5,
       selectedTime: null,
       useCurrentTime: true,
+      prioritizeMajor: false,
 
       // Actions
       setStartLocation: (location, name) => set({
@@ -108,6 +113,8 @@ export const useNavigationStore = create<NavigationState>()(
         selectedTime: useCurrent ? null : get().selectedTime,
       }),
 
+      setPrioritizeMajor: (prioritize) => set({ prioritizeMajor: prioritize }),
+
       clearRoute: () => set({
         route: null,
         selectedWaypoint: null,
@@ -127,6 +134,7 @@ export const useNavigationStore = create<NavigationState>()(
         mapZoom: 5,
         selectedTime: null,
         useCurrentTime: true,
+        prioritizeMajor: false,
       }),
     }),
     {
@@ -140,6 +148,7 @@ export const useNavigationStore = create<NavigationState>()(
         route: state.route,
         mapCenter: state.mapCenter,
         mapZoom: state.mapZoom,
+        prioritizeMajor: state.prioritizeMajor,
       }),
     }
   )

@@ -91,6 +91,16 @@ BRIGHT_STARS = [
     {"name": "Menkent", "ra": 14.0608, "dec": -36.3700, "mag": 2.06},
 ]
 
+# The 57 navigational stars used in celestial navigation
+NAVIGATIONAL_STARS = {
+    "Alpheratz", "Ankaa", "Schedar", "Diphda", "Achernar", "Hamal", "Acamar", "Menkar", "Mirfak", "Aldebaran",
+    "Rigel", "Capella", "Bellatrix", "Elnath", "Alnilam", "Betelgeuse", "Canopus", "Sirius", "Adhara", "Procyon",
+    "Pollux", "Avior", "Suhail", "Miaplacidus", "Alphard", "Regulus", "Dubhe", "Denebola", "Gienah", "Acrux",
+    "Gacrux", "Alioth", "Spica", "Alkaid", "Hadar", "Menkent", "Arcturus", "Rigil Kentaurus", "Alpha Centauri", "Zubenelgenubi", "Kochab",
+    "Alphecca", "Antares", "Atria", "Sabik", "Shaula", "Rasalhague", "Eltanin", "Kaus Australis", "Vega", "Nunki",
+    "Altair", "Peacock", "Deneb", "Enif", "Fomalhaut", "Markab", "Alnair"
+}
+
 
 def load_star_catalog() -> List[CelestialObject]:
     """Load the bright star catalog as CelestialObject instances."""

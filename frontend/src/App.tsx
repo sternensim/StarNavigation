@@ -63,6 +63,7 @@ function App() {
     sidebarOpen,
     setSidebarOpen,
     setMapCenter,
+    prioritizeMajor,
   } = useNavigationStore();
 
   const handleDrawerToggle = () => {
@@ -97,6 +98,7 @@ function App() {
       const response = await navigationApi.calculateRoute({
         start: startLocation,
         target: targetLocation,
+        prioritize_major: prioritizeMajor,
       });
 
       setRoute(response);
