@@ -282,7 +282,8 @@ def calculate_navigation_route(
     observation_time: datetime,
     step_size_km: float = 10.0,
     max_iterations: int = 100,
-    prioritize_major: bool = False
+    prioritize_major: bool = False,
+    planets_only: bool = False
 ) -> NavigationResponse:
     """
     Main navigation algorithm using celestial objects as reference points.
@@ -296,6 +297,7 @@ def calculate_navigation_route(
         step_size_km: Step size for following objects
         max_iterations: Maximum number of object switches
         prioritize_major: If True, give a bonus to planets and navigational stars
+        planets_only: If True, only use planets, moon, and sun for navigation
         
     Returns:
         NavigationResponse with waypoints and statistics
@@ -351,6 +353,13 @@ def calculate_navigation_route(
             observation_time,
             nav_state.used_objects
         )
+        
+        # Filter for planets only if requested
+        if planets_only:
+            visible_objects = [
+                obj for obj in visible_objects 
+                if obj.object_type in ["planet", "moon", "sun"]
+            ]
         
         if not visible_objects:
             raise NavigationError(

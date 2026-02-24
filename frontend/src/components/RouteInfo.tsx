@@ -77,7 +77,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
   onCalculate,
   waypoints,
 }) => {
-  const { prioritizeMajor, setPrioritizeMajor } = useNavigationStore();
+  const { prioritizeMajor, setPrioritizeMajor, planetsOnly, setPlanetsOnly } = useNavigationStore();
 
   const handleExportGpx = async () => {
     if (!route?.waypoints) return;
@@ -153,7 +153,22 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
               Prioritize Planets and Major Stars
             </Typography>
           }
-          sx={{ ml: 0 }}
+          sx={{ ml: 0, display: 'block' }}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={planetsOnly}
+              onChange={(e) => setPlanetsOnly(e.target.checked)}
+              color="primary"
+            />
+          }
+          label={
+            <Typography variant="body2">
+              Planets/Moon Only
+            </Typography>
+          }
+          sx={{ ml: 0, display: 'block' }}
         />
       </Paper>
 

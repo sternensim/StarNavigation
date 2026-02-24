@@ -64,6 +64,7 @@ function App() {
     setSidebarOpen,
     setMapCenter,
     prioritizeMajor,
+    planetsOnly,
   } = useNavigationStore();
 
   const handleDrawerToggle = () => {
@@ -99,6 +100,7 @@ function App() {
         start: startLocation,
         target: targetLocation,
         prioritize_major: prioritizeMajor,
+        planets_only: planetsOnly,
       });
 
       setRoute(response);

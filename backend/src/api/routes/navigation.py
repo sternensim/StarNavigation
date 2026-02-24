@@ -58,7 +58,8 @@ async def calculate_route(request: NavigationRequest):
             observation_time=observation_time,
             step_size_km=request.step_size_km,
             max_iterations=request.max_iterations,
-            prioritize_major=request.prioritize_major
+            prioritize_major=request.prioritize_major,
+            planets_only=request.planets_only
         )
         
         return result

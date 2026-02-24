@@ -29,6 +29,7 @@ interface NavigationState {
 
   // Navigation settings
   prioritizeMajor: boolean;
+  planetsOnly: boolean;
 
   // Actions
   setStartLocation: (location: Position | null, name?: string) => void;
@@ -44,6 +45,7 @@ interface NavigationState {
   setSelectedTime: (time: Date | null) => void;
   setUseCurrentTime: (useCurrent: boolean) => void;
   setPrioritizeMajor: (prioritize: boolean) => void;
+  setPlanetsOnly: (planetsOnly: boolean) => void;
   clearRoute: () => void;
   reset: () => void;
 }
@@ -69,6 +71,7 @@ export const useNavigationStore = create<NavigationState>()(
       selectedTime: null,
       useCurrentTime: true,
       prioritizeMajor: false,
+      planetsOnly: false,
 
       // Actions
       setStartLocation: (location, name) => set({
@@ -115,6 +118,8 @@ export const useNavigationStore = create<NavigationState>()(
 
       setPrioritizeMajor: (prioritize) => set({ prioritizeMajor: prioritize }),
 
+      setPlanetsOnly: (planetsOnly) => set({ planetsOnly }),
+
       clearRoute: () => set({
         route: null,
         selectedWaypoint: null,
@@ -135,6 +140,7 @@ export const useNavigationStore = create<NavigationState>()(
         selectedTime: null,
         useCurrentTime: true,
         prioritizeMajor: false,
+        planetsOnly: false,
       }),
     }),
     {
@@ -149,6 +155,7 @@ export const useNavigationStore = create<NavigationState>()(
         mapCenter: state.mapCenter,
         mapZoom: state.mapZoom,
         prioritizeMajor: state.prioritizeMajor,
+        planetsOnly: state.planetsOnly,
       }),
     }
   )

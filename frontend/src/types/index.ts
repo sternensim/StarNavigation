@@ -37,6 +37,7 @@ export interface NavigationRequest {
   step_size_km?: number;
   max_iterations?: number;
   prioritize_major?: boolean;
+  planets_only?: boolean;
 }
 
 export interface NavigationResponse {
