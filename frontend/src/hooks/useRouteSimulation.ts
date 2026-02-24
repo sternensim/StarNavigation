@@ -6,7 +6,8 @@ import { interpolateGeodesic } from '../utils/geodesic';
 
 export const useRouteSimulation = () => {
   const {
-    route,
+    routes,
+    selectedRouteId,
     startLocation,
     targetLocation,
     isSimulating,
@@ -17,6 +18,8 @@ export const useRouteSimulation = () => {
     setIsSimulating,
   } = useNavigationStore();
 
+  const selectedRoute = routes.find(r => r.id === selectedRouteId) || (routes.length > 0 ? routes[0] : null);
+
   const requestRef = useRef<number>();
   const lastTimeRef = useRef<number>();
 
@@ -26,7 +29,7 @@ export const useRouteSimulation = () => {
   const totalDistance = useRef<number>(0);
 
   useEffect(() => {
-    if (!route || !startLocation || !targetLocation) {
+    if (!selectedRoute || !startLocation || !targetLocation) {
       routePoints.current = [];
       segmentDistances.current = [];
       totalDistance.current = 0;
@@ -35,7 +38,7 @@ export const useRouteSimulation = () => {
 
     const points: Position[] = [
       startLocation,
-      ...route.waypoints.map((wp) => wp.position),
+      ...selectedRoute.waypoints.map((wp) => wp.position),
       targetLocation,
     ];
     routePoints.current = points;
@@ -51,7 +54,7 @@ export const useRouteSimulation = () => {
     }
     segmentDistances.current = distances;
     totalDistance.current = total;
-  }, [route, startLocation, targetLocation]);
+  }, [selectedRoute, startLocation, targetLocation]);
 
   const animate = (time: number) => {
     if (lastTimeRef.current !== undefined) {

@@ -127,7 +127,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
   const {
     startLocation,
     targetLocation,
-    route,
+    routes,
+    selectedRouteId,
     mapCenter,
     mapZoom,
     selectedWaypoint,
@@ -137,6 +138,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
 
   // Initialize simulation hook
   useRouteSimulation();
+
+  const selectedRoute = routes.find(r => r.id === selectedRouteId) || (routes.length > 0 ? routes[0] : null);
 
   // Color palette for route legs (distinct, visible colors)
   const LEG_COLORS = useMemo(
@@ -161,68 +164,79 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     color: string;
     legIndex: number;
     isDashed?: boolean;
+    isDimmed?: boolean;
   }
 
-  // Calculate route legs (Leg 1: start to first waypoint, Leg 2+: between waypoints, Final: last waypoint to target)
-  const routeLegs = useMemo<RouteLeg[]>(() => {
-    if (!route?.waypoints || route.waypoints.length === 0) return [];
-    
-    const legs: RouteLeg[] = [];
-    let legIndex = 0;
-    
-    // Leg 1: Start location to first waypoint
-    if (startLocation && route.waypoints.length > 0) {
-      const firstWaypoint = route.waypoints[0];
-      const densifiedPoints = densifyGeodesic(startLocation, firstWaypoint.position);
-      legs.push({
-        positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
-        color: LEG_COLORS[legIndex % LEG_COLORS.length],
-        legIndex: legIndex,
-      });
-      legIndex++;
-    }
-    
-    // Leg 2+: Between consecutive waypoints
-    for (let i = 0; i < route.waypoints.length - 1; i++) {
-      const start = route.waypoints[i];
-      const end = route.waypoints[i + 1];
-      const densifiedPoints = densifyGeodesic(start.position, end.position);
-      legs.push({
-        positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
-        color: LEG_COLORS[legIndex % LEG_COLORS.length],
-        legIndex: legIndex,
-      });
-      legIndex++;
-    }
+  // Calculate route legs for all routes
+  const allRouteLegs = useMemo<RouteLeg[]>(() => {
+    const allLegs: RouteLeg[] = [];
 
-    // Final Leg: Last waypoint to target location (dotted)
-    if (targetLocation && route.waypoints.length > 0) {
-      const lastWaypoint = route.waypoints[route.waypoints.length - 1];
-      // Use the same color as the last leg (which is legIndex - 1)
-      const lastColorIndex = (legIndex - 1 + LEG_COLORS.length) % LEG_COLORS.length;
+    routes.forEach((route) => {
+      if (!route.waypoints || route.waypoints.length === 0) return;
       
-      const densifiedPoints = densifyGeodesic(lastWaypoint.position, targetLocation);
-      legs.push({
-        positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
-        color: LEG_COLORS[lastColorIndex],
-        legIndex: legIndex,
-        isDashed: true,
-      });
-    }
+      const isSelected = route.id === selectedRouteId || (selectedRouteId === null && route === routes[0]);
+      const legs: RouteLeg[] = [];
+      let legIndex = 0;
+      
+      // Leg 1: Start location to first waypoint
+      if (startLocation && route.waypoints.length > 0) {
+        const firstWaypoint = route.waypoints[0];
+        const densifiedPoints = densifyGeodesic(startLocation, firstWaypoint.position);
+        legs.push({
+          positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
+          color: isSelected ? LEG_COLORS[legIndex % LEG_COLORS.length] : '#bdbdbd',
+          legIndex: legIndex,
+          isDimmed: !isSelected,
+        });
+        legIndex++;
+      }
+      
+      // Leg 2+: Between consecutive waypoints
+      for (let i = 0; i < route.waypoints.length - 1; i++) {
+        const start = route.waypoints[i];
+        const end = route.waypoints[i + 1];
+        const densifiedPoints = densifyGeodesic(start.position, end.position);
+        legs.push({
+          positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
+          color: isSelected ? LEG_COLORS[legIndex % LEG_COLORS.length] : '#bdbdbd',
+          legIndex: legIndex,
+          isDimmed: !isSelected,
+        });
+        legIndex++;
+      }
+
+      // Final Leg: Last waypoint to target location (dotted)
+      if (targetLocation && route.waypoints.length > 0) {
+        const lastWaypoint = route.waypoints[route.waypoints.length - 1];
+        // Use the same color as the last leg (which is legIndex - 1)
+        const lastColorIndex = (legIndex - 1 + LEG_COLORS.length) % LEG_COLORS.length;
+        
+        const densifiedPoints = densifyGeodesic(lastWaypoint.position, targetLocation);
+        legs.push({
+          positions: densifiedPoints.map(p => [p.latitude, p.longitude] as L.LatLngExpression),
+          color: isSelected ? LEG_COLORS[lastColorIndex] : '#bdbdbd',
+          legIndex: legIndex,
+          isDashed: true,
+          isDimmed: !isSelected,
+        });
+      }
+
+      allLegs.push(...legs);
+    });
     
-    return legs;
-  }, [route, LEG_COLORS, startLocation, targetLocation]);
+    return allLegs;
+  }, [routes, selectedRouteId, LEG_COLORS, startLocation, targetLocation]);
 
   // Calculate bounds to fit route
   const fitBounds = useCallback(() => {
-    if (route?.waypoints && route.waypoints.length > 0) {
+    if (selectedRoute?.waypoints && selectedRoute.waypoints.length > 0) {
       const bounds = L.latLngBounds(
-        route.waypoints.map((wp: Waypoint) => [wp.position.latitude, wp.position.longitude])
+        selectedRoute.waypoints.map((wp: Waypoint) => [wp.position.latitude, wp.position.longitude])
       );
       return bounds;
     }
     return null;
-  }, [route]);
+  }, [selectedRoute]);
 
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
@@ -272,21 +286,21 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
         )}
 
         {/* Route polylines - one per leg with different colors */}
-        {routeLegs.map((leg) => (
+        {allRouteLegs.map((leg, idx) => (
           <Polyline
-            key={`leg-${leg.legIndex}`}
+            key={`leg-${idx}`}
             positions={leg.positions}
             color={leg.color}
-            weight={5}
-            opacity={0.9}
+            weight={leg.isDimmed ? 3 : 5}
+            opacity={leg.isDimmed ? 0.4 : 0.9}
             lineCap="round"
             lineJoin="round"
             dashArray={leg.isDashed ? "5, 10" : undefined}
           />
         ))}
 
-        {/* Waypoint markers */}
-        {route?.waypoints.map((waypoint, index) => (
+        {/* Waypoint markers for selected route */}
+        {selectedRoute?.waypoints.map((waypoint, index) => (
           <Marker
             key={index}
             position={[waypoint.position.latitude, waypoint.position.longitude]}

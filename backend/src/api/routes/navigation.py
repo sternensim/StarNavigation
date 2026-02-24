@@ -49,8 +49,10 @@ async def calculate_route(request: NavigationRequest):
         def get_object_position(obj, position: Position):
             return get_object_position_at_location(obj, position, observation_time)
         
-        # Calculate the route
-        result = calculate_navigation_route(
+        routes = []
+        
+        # Route 1: Primary (based on user settings)
+        primary_route = calculate_navigation_route(
             start_position=request.start,
             target_position=request.target,
             get_visible_objects_func=get_visible_objects,
@@ -61,8 +63,51 @@ async def calculate_route(request: NavigationRequest):
             prioritize_major=request.prioritize_major,
             planets_only=request.planets_only
         )
+        primary_route.id = "primary"
+        primary_route.label = "Primary Route"
+        routes.append(primary_route)
         
-        return result
+        # Alternative Routes (if requested)
+        if request.max_routes > 1:
+            # Route 2: Opposite prioritization
+            alt_route_2 = calculate_navigation_route(
+                start_position=request.start,
+                target_position=request.target,
+                get_visible_objects_func=get_visible_objects,
+                get_object_position_func=get_object_position,
+                observation_time=observation_time,
+                step_size_km=request.step_size_km,
+                max_iterations=request.max_iterations,
+                prioritize_major=not request.prioritize_major,
+                planets_only=False if request.planets_only else False # Keep it simple for now
+            )
+            alt_route_2.id = "alternative_1"
+            alt_route_2.label = "Alternative 1"
+            routes.append(alt_route_2)
+            
+        if request.max_routes > 2:
+            # Route 3: Exclude most used object from primary
+            excluded = set()
+            if primary_route.used_objects:
+                excluded.add(primary_route.used_objects[0])
+                
+            alt_route_3 = calculate_navigation_route(
+                start_position=request.start,
+                target_position=request.target,
+                get_visible_objects_func=get_visible_objects,
+                get_object_position_func=get_object_position,
+                observation_time=observation_time,
+                step_size_km=request.step_size_km,
+                max_iterations=request.max_iterations,
+                prioritize_major=request.prioritize_major,
+                planets_only=request.planets_only,
+                excluded_objects=excluded
+            )
+            alt_route_3.id = "alternative_2"
+            alt_route_3.label = "Alternative 2"
+            routes.append(alt_route_3)
+            
+        return NavigationResponse(routes=routes)
         
     except NavigationError as e:
         raise HTTPException(status_code=400, detail=str(e))

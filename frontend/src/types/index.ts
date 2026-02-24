@@ -38,14 +38,22 @@ export interface NavigationRequest {
   max_iterations?: number;
   prioritize_major?: boolean;
   planets_only?: boolean;
+  max_routes?: number;
 }
 
-export interface NavigationResponse {
+export interface RouteResult {
+  id: string;
+  label: string;
   waypoints: Waypoint[];
   total_distance: number;
   direct_distance: number;
   iterations: number;
   used_objects: string[];
+  target_reached_cutoff: number;
+}
+
+export interface NavigationResponse {
+  routes: RouteResult[];
 }
 
 export interface VisibleObjectsResponse {

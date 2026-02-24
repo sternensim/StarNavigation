@@ -52,11 +52,11 @@ function App() {
     targetLocation,
     startLocationName,
     targetLocationName,
-    route,
+    routes,
     isCalculating,
     setStartLocation,
     setTargetLocation,
-    setRoute,
+    setRoutes,
     setIsCalculating,
     setError: setStoreError,
     clearRoute,
@@ -65,6 +65,7 @@ function App() {
     setMapCenter,
     prioritizeMajor,
     planetsOnly,
+    maxRoutes,
   } = useNavigationStore();
 
   const handleDrawerToggle = () => {
@@ -101,14 +102,15 @@ function App() {
         target: targetLocation,
         prioritize_major: prioritizeMajor,
         planets_only: planetsOnly,
+        max_routes: maxRoutes,
       });
 
-      setRoute(response);
+      setRoutes(response.routes);
 
-      // Center map on route
-      if (response.waypoints.length > 0) {
-        const midIndex = Math.floor(response.waypoints.length / 2);
-        const midPoint = response.waypoints[midIndex].position;
+      // Center map on first route
+      if (response.routes.length > 0 && response.routes[0].waypoints.length > 0) {
+        const midIndex = Math.floor(response.routes[0].waypoints.length / 2);
+        const midPoint = response.routes[0].waypoints[midIndex].position;
         setMapCenter(midPoint);
       }
     } catch (err) {
@@ -157,10 +159,9 @@ function App() {
       />
 
       <RouteInfo
-        route={route}
+        routes={routes}
         isCalculating={isCalculating}
         onCalculate={handleCalculateRoute}
-        waypoints={route?.waypoints || []}
       />
     </Box>
   );

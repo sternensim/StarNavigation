@@ -3,7 +3,7 @@
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Position, NavigationResponse, Waypoint, CelestialObject } from '../types';
+import { Position, NavigationResponse, Waypoint, CelestialObject, RouteResult } from '../types';
 
 interface NavigationState {
   // Location state
@@ -13,7 +13,8 @@ interface NavigationState {
   targetLocationName: string;
 
   // Navigation result
-  route: NavigationResponse | null;
+  routes: RouteResult[];
+  selectedRouteId: string | null;
   isCalculating: boolean;
   error: string | null;
 
@@ -36,12 +37,14 @@ interface NavigationState {
   // Navigation settings
   prioritizeMajor: boolean;
   planetsOnly: boolean;
+  maxRoutes: number;
 
   // Actions
   setStartLocation: (location: Position | null, name?: string) => void;
   setTargetLocation: (location: Position | null, name?: string) => void;
   swapLocations: () => void;
-  setRoute: (route: NavigationResponse | null) => void;
+  setRoutes: (routes: RouteResult[]) => void;
+  setSelectedRouteId: (id: string | null) => void;
   setIsCalculating: (isCalculating: boolean) => void;
   setError: (error: string | null) => void;
   setSelectedWaypoint: (waypoint: Waypoint | null) => void;
@@ -52,6 +55,7 @@ interface NavigationState {
   setUseCurrentTime: (useCurrent: boolean) => void;
   setPrioritizeMajor: (prioritize: boolean) => void;
   setPlanetsOnly: (planetsOnly: boolean) => void;
+  setMaxRoutes: (max: number) => void;
 
   // Simulation actions
   setIsSimulating: (isSimulating: boolean) => void;
@@ -75,7 +79,8 @@ export const useNavigationStore = create<NavigationState>()(
       targetLocation: null,
       startLocationName: '',
       targetLocationName: '',
-      route: null,
+      routes: [],
+      selectedRouteId: null,
       isCalculating: false,
       error: null,
       selectedWaypoint: null,
@@ -86,6 +91,7 @@ export const useNavigationStore = create<NavigationState>()(
       useCurrentTime: true,
       prioritizeMajor: false,
       planetsOnly: false,
+      maxRoutes: 1,
       isSimulating: false,
       simulationProgress: 0,
       simulationSpeed: 1,
@@ -109,11 +115,18 @@ export const useNavigationStore = create<NavigationState>()(
           targetLocation: startLocation,
           startLocationName: targetLocationName,
           targetLocationName: startLocationName,
-          route: null,
+          routes: [],
+          selectedRouteId: null,
         });
       },
 
-      setRoute: (route) => set({ route, error: null }),
+      setRoutes: (routes) => set({ 
+        routes, 
+        selectedRouteId: routes.length > 0 ? routes[0].id : null,
+        error: null 
+      }),
+
+      setSelectedRouteId: (selectedRouteId) => set({ selectedRouteId }),
 
       setIsCalculating: (isCalculating) => set({ isCalculating }),
 
@@ -144,6 +157,8 @@ export const useNavigationStore = create<NavigationState>()(
         prioritizeMajor: planetsOnly ? false : state.prioritizeMajor,
       })),
 
+      setMaxRoutes: (maxRoutes) => set({ maxRoutes }),
+
       setIsSimulating: (isSimulating) => set({ isSimulating }),
       setSimulationProgress: (simulationProgress) => set({ simulationProgress }),
       setSimulationSpeed: (simulationSpeed) => set({ simulationSpeed }),
@@ -157,7 +172,8 @@ export const useNavigationStore = create<NavigationState>()(
       clearRoute: () => {
         get().resetSimulation();
         set({
-          route: null,
+          routes: [],
+          selectedRouteId: null,
           selectedWaypoint: null,
           error: null,
         });
@@ -168,7 +184,8 @@ export const useNavigationStore = create<NavigationState>()(
         targetLocation: null,
         startLocationName: '',
         targetLocationName: '',
-        route: null,
+        routes: [],
+        selectedRouteId: null,
         isCalculating: false,
         error: null,
         selectedWaypoint: null,
@@ -178,6 +195,7 @@ export const useNavigationStore = create<NavigationState>()(
         useCurrentTime: true,
         prioritizeMajor: false,
         planetsOnly: false,
+        maxRoutes: 1,
         isSimulating: false,
         simulationProgress: 0,
         simulationSpeed: 1,
@@ -192,11 +210,13 @@ export const useNavigationStore = create<NavigationState>()(
         targetLocation: state.targetLocation,
         startLocationName: state.startLocationName,
         targetLocationName: state.targetLocationName,
-        route: state.route,
+        routes: state.routes,
+        selectedRouteId: state.selectedRouteId,
         mapCenter: state.mapCenter,
         mapZoom: state.mapZoom,
         prioritizeMajor: state.prioritizeMajor,
         planetsOnly: state.planetsOnly,
+        maxRoutes: state.maxRoutes,
       }),
     }
   )

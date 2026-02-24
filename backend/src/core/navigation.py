@@ -283,7 +283,8 @@ def calculate_navigation_route(
     step_size_km: float = 10.0,
     max_iterations: int = 100,
     prioritize_major: bool = False,
-    planets_only: bool = False
+    planets_only: bool = False,
+    excluded_objects: Optional[Set[str]] = None
 ) -> NavigationResponse:
     """
     Main navigation algorithm using celestial objects as reference points.
@@ -298,6 +299,7 @@ def calculate_navigation_route(
         max_iterations: Maximum number of object switches
         prioritize_major: If True, give a bonus to planets and navigational stars
         planets_only: If True, only use planets, moon, and sun for navigation
+        excluded_objects: Optional set of object names to exclude from selection
         
     Returns:
         NavigationResponse with waypoints and statistics
@@ -313,7 +315,7 @@ def calculate_navigation_route(
     nav_state = NavigationState(
         current_position=start_position,
         target_position=target_position,
-        used_objects=set(),
+        used_objects=excluded_objects.copy() if excluded_objects else set(),
         waypoints=[],
         iteration_count=0
     )
@@ -332,12 +334,15 @@ def calculate_navigation_route(
             )
             nav_state.waypoints.append(final_waypoint)
             
-            return NavigationResponse(
+            from ..api.models import RouteResult
+            return RouteResult(
+                id="route",
+                label="Route",
                 waypoints=nav_state.waypoints,
                 total_distance=total_distance_traveled,
                 direct_distance=direct_distance,
                 iterations=nav_state.iteration_count,
-                used_objects=list(nav_state.used_objects),
+                used_objects=list(nav_state.used_objects - (excluded_objects or set())),
                 target_reached_cutoff=target_reached_cutoff
             )
         
@@ -406,12 +411,15 @@ def calculate_navigation_route(
         
         # If we reached the target, add final waypoint and return
         if reason == "target_reached":
-            return NavigationResponse(
+            from ..api.models import RouteResult
+            return RouteResult(
+                id="route",
+                label="Route",
                 waypoints=nav_state.waypoints,
                 total_distance=total_distance_traveled,
                 direct_distance=direct_distance,
                 iterations=nav_state.iteration_count,
-                used_objects=list(nav_state.used_objects),
+                used_objects=list(nav_state.used_objects - (excluded_objects or set())),
                 target_reached_cutoff=target_reached_cutoff
             )
     

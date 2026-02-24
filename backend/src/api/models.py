@@ -47,16 +47,24 @@ class NavigationRequest(BaseModel):
     max_iterations: int = Field(100, ge=10, le=1000, description="Maximum navigation iterations")
     prioritize_major: bool = Field(False, description="Give priority to planets and major navigational stars")
     planets_only: bool = Field(False, description="Only use planets, moon, and sun for navigation")
+    max_routes: int = Field(1, ge=1, le=3, description="Maximum number of alternative routes to return")
 
 
-class NavigationResponse(BaseModel):
-    """Response from navigation calculation."""
+class RouteResult(BaseModel):
+    """Individual route result."""
+    id: str = Field(..., description="Unique identifier for the route")
+    label: str = Field(..., description="Display label for the route")
     waypoints: List[Waypoint] = Field(..., description="List of waypoints along the route")
     total_distance: float = Field(..., description="Total route distance in km")
     direct_distance: float = Field(..., description="Direct distance from start to target in km")
     iterations: int = Field(..., description="Number of iterations used")
     used_objects: List[str] = Field(..., description="Names of celestial objects used")
     target_reached_cutoff: float = Field(..., description="Dynamic cutoff distance (km) for determining if target is reached")
+
+
+class NavigationResponse(BaseModel):
+    """Response from navigation calculation."""
+    routes: List[RouteResult] = Field(..., description="List of calculated routes")
 
 
 class VisibleObjectsRequest(BaseModel):

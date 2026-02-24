@@ -78,6 +78,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Prioritize Planets and Major Stars mode** - Prefer navigational stars and planets as waypoints.
 - [x] **Planets/Moon Only mode** - Restrict waypoints to major celestial bodies.
 - [x] **Route Simulation/Animation** - Visualize travel along the route with animated marker and speed controls.
+- [x] **Alternative Routes** - Support for generating and selecting between multiple route options.
 - [ ] **Current Position Tracking** - Show user's current position relative to route
 - [ ] **Progress Indicators** - Show distance traveled, distance remaining, ETA
 - [ ] **Export Formats** - Support GPX, KML in addition to GeoJSON
