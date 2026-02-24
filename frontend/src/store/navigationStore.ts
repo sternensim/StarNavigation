@@ -116,9 +116,15 @@ export const useNavigationStore = create<NavigationState>()(
         selectedTime: useCurrent ? null : get().selectedTime,
       }),
 
-      setPrioritizeMajor: (prioritize) => set({ prioritizeMajor: prioritize }),
+      setPrioritizeMajor: (prioritize) => set((state) => ({
+        prioritizeMajor: prioritize,
+        planetsOnly: prioritize ? false : state.planetsOnly,
+      })),
 
-      setPlanetsOnly: (planetsOnly) => set({ planetsOnly }),
+      setPlanetsOnly: (planetsOnly) => set((state) => ({
+        planetsOnly: planetsOnly,
+        prioritizeMajor: planetsOnly ? false : state.prioritizeMajor,
+      })),
 
       clearRoute: () => set({
         route: null,
