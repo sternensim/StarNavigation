@@ -54,6 +54,7 @@ class NavigationResponse(BaseModel):
     direct_distance: float = Field(..., description="Direct distance from start to target in km")
     iterations: int = Field(..., description="Number of iterations used")
     used_objects: List[str] = Field(..., description="Names of celestial objects used")
+    target_reached_cutoff: float = Field(..., description="Dynamic cutoff distance (km) for determining if target is reached")
 
 
 class VisibleObjectsRequest(BaseModel):

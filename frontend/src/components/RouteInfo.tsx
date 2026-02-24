@@ -30,6 +30,20 @@ import {
 import { NavigationResponse, Waypoint, StopReason } from '../types';
 import { navigationApi } from '../services/api';
 
+// Color palette matching MapComponent
+const LEG_COLORS = [
+  '#e53935', // Red
+  '#1e88e5', // Blue
+  '#43a047', // Green
+  '#fb8c00', // Orange
+  '#8e24aa', // Purple
+  '#00acc1', // Cyan
+  '#fdd835', // Yellow
+  '#6d4c41', // Brown
+  '#3949ab', // Indigo
+  '#d81b60', // Pink
+];
+
 interface RouteInfoProps {
   route: NavigationResponse | null;
   isCalculating: boolean;
@@ -171,6 +185,32 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
               </Box>
             )}
           </Paper>
+
+          {/* Route Legs Legend */}
+          {route.waypoints.length > 1 && (
+            <Paper sx={{ p: 2, mb: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Route Legs
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {route.waypoints.slice(0, -1).map((_, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 4,
+                        borderRadius: 1,
+                        backgroundColor: LEG_COLORS[index % LEG_COLORS.length],
+                      }}
+                    />
+                    <Typography variant="body2">
+                      Leg {index + 1}: Waypoint {index + 1} → {index + 2}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+          )}
 
           {/* Export Buttons */}
           <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>

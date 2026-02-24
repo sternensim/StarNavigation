@@ -131,17 +131,55 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
     setSelectedWaypoint,
   } = useNavigationStore();
 
-  // Calculate route polyline positions
-  const routePositions = useMemo(() => {
-    if (!route?.waypoints) return [];
-    return route.waypoints.map((wp) => [wp.position.latitude, wp.position.longitude] as L.LatLngExpression);
-  }, [route]);
+  // Color palette for route legs (distinct, visible colors)
+  const LEG_COLORS = useMemo(
+    () => [
+      '#e53935', // Red
+      '#1e88e5', // Blue
+      '#43a047', // Green
+      '#fb8c00', // Orange
+      '#8e24aa', // Purple
+      '#00acc1', // Cyan
+      '#fdd835', // Yellow
+      '#6d4c41', // Brown
+      '#3949ab', // Indigo
+      '#d81b60', // Pink
+    ],
+    []
+  );
+
+  // Type for route legs
+  interface RouteLeg {
+    positions: L.LatLngExpression[];
+    color: string;
+    legIndex: number;
+  }
+
+  // Calculate route legs (segments between consecutive waypoints)
+  const routeLegs = useMemo<RouteLeg[]>(() => {
+    if (!route?.waypoints || route.waypoints.length < 2) return [];
+    
+    const legs: RouteLeg[] = [];
+    for (let i = 0; i < route.waypoints.length - 1; i++) {
+      const start = route.waypoints[i];
+      const end = route.waypoints[i + 1];
+      legs.push({
+        positions: [
+          [start.position.latitude, start.position.longitude] as L.LatLngExpression,
+          [end.position.latitude, end.position.longitude] as L.LatLngExpression,
+        ],
+        color: LEG_COLORS[i % LEG_COLORS.length],
+        legIndex: i,
+      });
+    }
+    return legs;
+  }, [route, LEG_COLORS]);
 
   // Calculate bounds to fit route
   const fitBounds = useCallback(() => {
     if (route?.waypoints && route.waypoints.length > 0) {
       const bounds = L.latLngBounds(
-        route.waypoints.map((wp) => [wp.position.latitude, wp.position.longitude])
+        route.waypoints.map((wp: Waypoint) => [wp.position.latitude, wp.position.longitude])
       );
       return bounds;
     }
@@ -195,15 +233,18 @@ const MapComponent: React.FC<MapComponentProps> = ({ clickMode, onMapClick }) =>
           </Marker>
         )}
 
-        {/* Route polyline */}
-        {routePositions.length > 0 && (
+        {/* Route polylines - one per leg with different colors */}
+        {routeLegs.map((leg) => (
           <Polyline
-            positions={routePositions}
-            color="#2196f3"
-            weight={4}
-            opacity={0.8}
+            key={`leg-${leg.legIndex}`}
+            positions={leg.positions}
+            color={leg.color}
+            weight={5}
+            opacity={0.9}
+            lineCap="round"
+            lineJoin="round"
           />
-        )}
+        ))}
 
         {/* Waypoint markers */}
         {route?.waypoints.map((waypoint, index) => (

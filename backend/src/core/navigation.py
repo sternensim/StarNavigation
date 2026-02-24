@@ -15,6 +15,12 @@ from ..api.models import Position, CelestialObject, Waypoint, NavigationResponse
 # Earth's radius in kilometers
 EARTH_RADIUS_KM = 6371.0
 
+# Maximum target reached cutoff in kilometers
+MAX_TARGET_REACHED_CUTOFF_KM = 5.0
+
+# Target reached cutoff as percentage of total route distance
+TARGET_REACHED_CUTOFF_PERCENTAGE = 0.05
+
 
 class NavigationError(Exception):
     """Exception raised for navigation errors."""
@@ -157,11 +163,33 @@ def positions_equal(pos1: Position, pos2: Position, tolerance_km: float = 0.1) -
     return haversine_distance(pos1, pos2) < tolerance_km
 
 
+def calculate_target_reached_cutoff(total_route_distance_km: float) -> float:
+    """
+    Calculate the dynamic target reached cutoff distance.
+    
+    The cutoff is calculated as 5% of the total route distance,
+    capped at a maximum of 5 km.
+    
+    Args:
+        total_route_distance_km: The total direct distance of the route in km
+        
+    Returns:
+        The cutoff distance in km
+        
+    Examples:
+        - 50 km route -> 2.5 km cutoff
+        - 100 km route -> 5.0 km cutoff
+        - 1000 km route -> 5.0 km cutoff (capped)
+    """
+    return min(total_route_distance_km * TARGET_REACHED_CUTOFF_PERCENTAGE, MAX_TARGET_REACHED_CUTOFF_KM)
+
+
 def follow_celestial_object(
     nav_state: NavigationState,
     reference_object: CelestialObject,
     get_object_position_func,
-    step_size_km: float = 10.0
+    step_size_km: float = 10.0,
+    target_reached_cutoff_km: float = 1.0
 ) -> Tuple[Position, str, CelestialObject]:
     """
     Follow the reference celestial object until it sets or we reach closest approach.
@@ -171,6 +199,7 @@ def follow_celestial_object(
         reference_object: The celestial object to follow
         get_object_position_func: Function to get updated object position (azimuth, altitude)
         step_size_km: Distance to move in each step
+        target_reached_cutoff_km: Distance threshold for considering target reached
         
     Returns:
         Tuple of (final_position, reason_for_stopping, updated_reference_object)
@@ -215,7 +244,7 @@ def follow_celestial_object(
             return closest_point, "closest_approach", updated_object
         
         # Check 4: Have we reached the target?
-        if current_distance < step_size_km:
+        if current_distance < target_reached_cutoff_km:
             return next_pos, "target_reached", updated_object
         
         # Update tracking
@@ -257,6 +286,10 @@ def calculate_navigation_route(
     Raises:
         NavigationError: If navigation fails (no visible objects, max iterations exceeded, etc.)
     """
+    # Calculate the direct distance and dynamic cutoff
+    direct_distance = haversine_distance(start_position, target_position)
+    target_reached_cutoff = calculate_target_reached_cutoff(direct_distance)
+    
     # Initialize navigation state
     nav_state = NavigationState(
         current_position=start_position,
@@ -269,8 +302,8 @@ def calculate_navigation_route(
     total_distance_traveled = 0.0
     
     while nav_state.iteration_count < max_iterations:
-        # Check if we've reached the target
-        if positions_equal(nav_state.current_position, target_position):
+        # Check if we've reached the target (using dynamic cutoff)
+        if positions_equal(nav_state.current_position, target_position, target_reached_cutoff):
             final_waypoint = Waypoint(
                 position=nav_state.current_position,
                 reference_object=None,
@@ -283,9 +316,10 @@ def calculate_navigation_route(
             return NavigationResponse(
                 waypoints=nav_state.waypoints,
                 total_distance=total_distance_traveled,
-                direct_distance=haversine_distance(start_position, target_position),
+                direct_distance=direct_distance,
                 iterations=nav_state.iteration_count,
-                used_objects=list(nav_state.used_objects)
+                used_objects=list(nav_state.used_objects),
+                target_reached_cutoff=target_reached_cutoff
             )
         
         # Step 1: Calculate compass direction to target
@@ -317,7 +351,7 @@ def calculate_navigation_route(
         # Step 4: Follow the celestial object
         start_of_leg = nav_state.current_position
         final_pos, reason, updated_object = follow_celestial_object(
-            nav_state, best_object, get_object_position_func, step_size_km
+            nav_state, best_object, get_object_position_func, step_size_km, target_reached_cutoff
         )
         
         # Calculate distance traveled this leg
@@ -349,9 +383,10 @@ def calculate_navigation_route(
             return NavigationResponse(
                 waypoints=nav_state.waypoints,
                 total_distance=total_distance_traveled,
-                direct_distance=haversine_distance(start_position, target_position),
+                direct_distance=direct_distance,
                 iterations=nav_state.iteration_count,
-                used_objects=list(nav_state.used_objects)
+                used_objects=list(nav_state.used_objects),
+                target_reached_cutoff=target_reached_cutoff
             )
     
     raise NavigationError(f"Exceeded maximum iterations ({max_iterations})")
