@@ -130,7 +130,8 @@ def circular_distance(angle1: float, angle2: float) -> float:
 def select_best_celestial_object(
     target_bearing: float,
     visible_objects: List[CelestialObject],
-    prioritize_major: bool = False
+    prioritize_major: bool = False,
+    optimize_for: str = "shortest"
 ) -> Optional[CelestialObject]:
     """
     Select the visible celestial object whose azimuth is closest to the target bearing.
@@ -139,6 +140,7 @@ def select_best_celestial_object(
         target_bearing: Desired compass direction in degrees
         visible_objects: List of visible celestial objects with azimuth calculated
         prioritize_major: If True, give a bonus to planets and navigational stars
+        optimize_for: "shortest" or "least_changes"
         
     Returns:
         The best matching celestial object, or None if no objects available
@@ -164,8 +166,14 @@ def select_best_celestial_object(
             if is_planet or is_nav_star:
                 # Give a significant bonus (e.g., reduce score by 30 degrees)
                 # This makes a major object 30 degrees "closer" to the target bearing than it actually is
-                score = max(0, angular_distance - 30.0)
+                score = max(0, score - 30.0)
         
+        # For "least_changes", favor objects higher in the sky as they stay visible longer
+        if optimize_for == "least_changes" and obj.altitude is not None:
+            # Reduce score by up to 20 degrees based on altitude (0-90)
+            altitude_bonus = (obj.altitude / 90.0) * 20.0
+            score = max(0, score - altitude_bonus)
+            
         if score < min_score:
             min_score = score
             best_object = obj
@@ -284,6 +292,7 @@ def calculate_navigation_route(
     max_iterations: int = 100,
     prioritize_major: bool = False,
     planets_only: bool = False,
+    optimize_for: str = "shortest",
     excluded_objects: Optional[Set[str]] = None
 ) -> NavigationResponse:
     """
@@ -299,6 +308,7 @@ def calculate_navigation_route(
         max_iterations: Maximum number of object switches
         prioritize_major: If True, give a bonus to planets and navigational stars
         planets_only: If True, only use planets, moon, and sun for navigation
+        optimize_for: "shortest" or "least_changes"
         excluded_objects: Optional set of object names to exclude from selection
         
     Returns:
@@ -311,6 +321,10 @@ def calculate_navigation_route(
     direct_distance = haversine_distance(start_position, target_position)
     target_reached_cutoff = calculate_target_reached_cutoff(direct_distance)
     
+    # Adjust step size for "least_changes" optimization
+    if optimize_for == "least_changes":
+        step_size_km = step_size_km * 2.0
+        
     # Initialize navigation state
     nav_state = NavigationState(
         current_position=start_position,
@@ -374,7 +388,12 @@ def calculate_navigation_route(
             )
         
         # Step 3: Select best matching object
-        best_object = select_best_celestial_object(target_bearing, visible_objects, prioritize_major)
+        best_object = select_best_celestial_object(
+            target_bearing,
+            visible_objects,
+            prioritize_major,
+            optimize_for
+        )
         
         if not best_object:
             raise NavigationError("Could not find suitable celestial reference")

@@ -18,6 +18,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Skyfield Update** - Updated to 1.54 to support NumPy 2.0 natively.
 - [x] **Prioritize Planets and Major Stars** - Added a mode to prefer navigational stars and planets as waypoints.
 - [x] **Planets/Moon Only Mode** - Added a mode to restrict waypoints to only major celestial bodies (planets, moon, sun).
+- [x] **Alternative Route Generation** - Algorithm now supports generating multiple distinct paths (Shortest vs. Least Changes).
 
 ### Frontend (React/TypeScript/Leaflet)
 - [x] **Interactive Map** - Leaflet-based map with OpenStreetMap tiles
@@ -35,6 +36,8 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Prioritize Major Stars Toggle** - Added UI control for the new navigation mode.
 - [x] **Planets/Moon Only Toggle** - Added UI control to filter for major celestial bodies.
 - [x] **Dotted Line to Target** - Added a visual indicator from the last waypoint to the final destination.
+- [x] **Route Simulation/Animation** - Interactive simulation with geodesic path alignment and speed controls.
+- [x] **Multi-Route Comparison** - UI for selecting and comparing "Shortest Path" vs. "Fewest Waypoints".
 
 ---
 
@@ -54,6 +57,22 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **UI Overlay Issue** - The "multibar" (AppBar) div is overlaying over the map and makes using it more difficult. We should make sure that there is no overlap.
 
 ---
+
+## Known Issues Classification & Recommendations
+
+The following table classifies all known issues by severity, category, and effort required to fix them. Issues are sorted by priority for addressing.
+
+| # | Issue | Severity | Category | Effort | Recommendation |
+|---|-------|----------|----------|--------|----------------|
+| 1 | **UI Overlay Issue** | **High** | UI/UX | Quick Win (hours) | **Fixed** - Added a spacer Toolbar in `App.tsx` to handle the fixed AppBar height dynamically. |
+| 2 | **Dependency Vulnerabilities** | **High** | Security | Quick Win (hours) | **Fixed** - Resolved all vulnerabilities (including `minimatch` ReDoS) by updating `vite`, `eslint`, and using `npm overrides`. |
+| 3 | **No Route Persistence** | **Low** | Frontend | Quick Win (hours) | **Fixed** - Implemented `localStorage` persistence using `zustand/middleware`. |
+| 4 | **Limited Mobile Responsiveness** | **Medium** | Frontend/UI | Short-term (days) | **Fixed** - Improved drawer behavior, responsive widths, and stackable controls. |
+| 5 | **Skyfield Deprecation** | **Medium** | Backend | Short-term (days) | **Fixed** - Updated `skyfield` to `1.54` and removed `numpy<2.0` pin. |
+| 6 | No Authentication | **Medium** | Backend/Security | Medium-term (weeks) | **Address soon** - Implement basic API key or JWT authentication if the API is to be exposed. |
+| 7 | **Limited Error Handling** | **Low** | Backend | Short-term (days) | **Improved** - Added global exception handlers, Axios interceptors, and better user feedback. |
+| 8 | No Persistent Storage | **Low** | Backend | Long-term (months) | **Nice to have** - Implement only if user accounts or route history features are prioritized. |
+| 9 | No Offline Support | **Low** | Frontend | Long-term (months) | **Nice to have** - Would require service workers and map tile caching. |
 
 ### Priority Summary
 
@@ -78,7 +97,7 @@ StarNavigation is a celestial navigation application that calculates routes usin
 - [x] **Prioritize Planets and Major Stars mode** - Prefer navigational stars and planets as waypoints.
 - [x] **Planets/Moon Only mode** - Restrict waypoints to major celestial bodies.
 - [x] **Route Simulation/Animation** - Visualize travel along the route with animated marker and speed controls.
-- [x] **Alternative Routes** - Support for generating and selecting between multiple route options.
+- [x] **Alternative Routes** - Support for generating and selecting between multiple route options (Shortest vs. Least Changes).
 - [ ] **Current Position Tracking** - Show user's current position relative to route
 - [ ] **Progress Indicators** - Show distance traveled, distance remaining, ETA
 - [ ] **Export Formats** - Support GPX, KML in addition to GeoJSON
@@ -86,7 +105,6 @@ StarNavigation is a celestial navigation application that calculates routes usin
 
 ### Medium Priority
 - [ ] **Weather Integration** - Show weather conditions along route
-- [ ] **Alternative Routes** - Calculate multiple route options
 - [ ] **Route Optimization** - Optimize for shortest distance vs fewest waypoints
 - [ ] **Print View** - Printable route summary with maps
 - [ ] **Mobile App** - React Native or PWA version
