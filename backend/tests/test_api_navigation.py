@@ -419,3 +419,21 @@ class TestCalculateEndpoint:
              patch(self.PATCH_POSITION, side_effect=mock_get_object_position):
             resp = self._post(client, self._base_payload())
         assert resp.status_code == 400
+
+    def test_short_route_does_not_exhaust_stars(self, client):
+        # Regression test: when step_size_km >> target distance, the algorithm
+        # used to overshoot the target on every star, consuming all stars and
+        # returning 400 "No visible celestial objects" for short routes.
+        # With a 5 km target and 50 km step size, the fix caps the step to the
+        # remaining distance so the route completes successfully.
+        payload = self._base_payload(
+            target={"latitude": 0.045, "longitude": 0.0},  # ~5 km north
+            step_size_km=50.0,
+            max_iterations=50,
+        )
+        with patch(self.PATCH_VISIBLE, side_effect=mock_get_visible), \
+             patch(self.PATCH_POSITION, side_effect=mock_get_object_position):
+            resp = self._post(client, payload)
+        assert resp.status_code == 200
+        routes = resp.json()["routes"]
+        assert len(routes) >= 1

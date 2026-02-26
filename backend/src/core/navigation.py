@@ -247,7 +247,11 @@ def follow_celestial_object(
         # Move toward the reference object (follow its current azimuth)
         if updated_object.azimuth is None:
             break
-        next_pos = move_in_direction(current_pos, updated_object.azimuth, step_size_km)
+        # Cap step size to remaining distance to avoid overshooting the target.
+        # Without this, a step_size larger than the remaining distance would cause
+        # every star to be immediately consumed with no progress (short-route bug).
+        effective_step = min(step_size_km, previous_distance) if previous_distance > 0 else step_size_km
+        next_pos = move_in_direction(current_pos, updated_object.azimuth, effective_step)
         
         # Update object position for new location and time
         azimuth, altitude = get_object_position_func(updated_object, next_pos)
