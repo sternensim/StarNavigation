@@ -402,6 +402,26 @@ class TestCalculateEndpoint:
         assert "comfortable" in ids
         assert "Comfortable Visibility" in labels
 
+    def test_fewest_waypoints_label_means_genuinely_fewer_waypoints(self, client):
+        """'Fewest Waypoints' must only be assigned to a route that truly has fewer
+        waypoints than the 'Shortest Path' route.  Regression for the bug where
+        the label was applied unconditionally to the second route regardless of
+        whether it actually had fewer waypoints."""
+        with patch(self.PATCH_VISIBLE, side_effect=mock_get_visible), \
+             patch(self.PATCH_POSITION, side_effect=mock_get_object_position):
+            resp = self._post(client, self._base_payload(max_routes=3))
+        assert resp.status_code == 200
+        routes = resp.json()["routes"]
+        shortest = next((r for r in routes if r["id"] == "shortest"), None)
+        fewest = next((r for r in routes if r["label"] == "Fewest Waypoints"), None)
+        # If a "Fewest Waypoints" route is present, it must actually have fewer
+        # waypoints than the "Shortest Path" route — never equal or more.
+        if shortest and fewest:
+            assert len(fewest["waypoints"]) < len(shortest["waypoints"]), (
+                f"'Fewest Waypoints' has {len(fewest['waypoints'])} waypoints but "
+                f"'Shortest Path' has {len(shortest['waypoints'])} — label is misleading"
+            )
+
     def test_waypoints_have_position(self, client):
         with patch(self.PATCH_VISIBLE, side_effect=mock_get_visible), \
              patch(self.PATCH_POSITION, side_effect=mock_get_object_position):

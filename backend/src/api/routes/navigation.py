@@ -128,9 +128,14 @@ async def calculate_route(request: NavigationRequest):
                 non_comfortable[0].id = "shortest"
 
                 if len(non_comfortable) > 1:
+                    shortest_wp_count = len(non_comfortable[0].waypoints)
+                    # Find the route among alternatives with the fewest waypoints.
+                    # Only award the "Fewest Waypoints" label if it actually has fewer
+                    # waypoints than the "Shortest Path" route — otherwise the label
+                    # would be misleading (the shortest route already wins on both axes).
                     fewest_wp = min(non_comfortable[1:], key=lambda r: len(r.waypoints))
                     for i, r in enumerate(non_comfortable[1:], 1):
-                        if r is fewest_wp:
+                        if r is fewest_wp and len(r.waypoints) < shortest_wp_count:
                             r.label = "Fewest Waypoints"
                             r.id = "least_changes"
                         else:
