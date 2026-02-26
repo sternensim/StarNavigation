@@ -150,7 +150,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
       </Button>
 
       {/* Settings */}
-      <Paper sx={{ p: 1, mb: 2 }}>
+      <Paper sx={{ p: 2, mb: 3 }}>
         <FormControlLabel
           control={
             <Switch
@@ -164,7 +164,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
               Prioritize Planets and Major Stars
             </Typography>
           }
-          sx={{ ml: 0, display: 'block' }}
+          sx={{ ml: 0, display: 'block', mb: 1 }}
         />
         <FormControlLabel
           control={
@@ -179,11 +179,11 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
               Planets/Moon Only
             </Typography>
           }
-          sx={{ ml: 0, display: 'block' }}
+          sx={{ ml: 0, display: 'block', mb: 2 }}
         />
         
-        <Box sx={{ px: 1, mt: 1 }}>
-          <Typography variant="caption" color="text.secondary">
+        <Box sx={{ px: 1, mt: 2 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
             Max Routes: {maxRoutes}
           </Typography>
           <Slider
@@ -194,6 +194,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
             marks
             onChange={(_, v) => setMaxRoutes(v as number)}
             size="small"
+            sx={{ mt: 1 }}
           />
         </Box>
       </Paper>
@@ -202,7 +203,7 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
         <>
           {/* Route Selector */}
           {routes.length > 1 && (
-            <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+            <Box sx={{ mb: 3, display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1 }}>
               {routes.map((r) => (
                 <Chip
                   key={r.id}
