@@ -20,6 +20,7 @@ build/
 .eggs/
 
 # IDE
+.claude/
 .vscode/
 .idea/
 *.swp
