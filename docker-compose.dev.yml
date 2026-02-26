@@ -37,6 +37,7 @@ services:
       - /app/node_modules               # anonymous volume keeps image node_modules intact
     environment:
       - VITE_API_TARGET=http://backend:8000   # proxy target inside Docker network
+      - VITE_HMR_HOST=navi.graeffcloud.de     # enable HMR from remote host
       # Set VITE_HMR_HOST to the Docker host's IP or hostname so the browser
       # connects HMR websockets to the right address when accessing remotely.
       # e.g. add  VITE_HMR_HOST=192.168.1.100  to a .env.dev file or export it
