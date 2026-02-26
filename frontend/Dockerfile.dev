@@ -1,0 +1,13 @@
+# Development image — runs Vite's dev server with HMR.
+# Source code is bind-mounted at runtime (see docker-compose.dev.yml),
+# so this image only needs to install node_modules once.
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

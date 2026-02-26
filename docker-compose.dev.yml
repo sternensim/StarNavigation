@@ -1,0 +1,55 @@
+version: '3.8'
+
+# Development compose file — optimised for fast iteration.
+#
+# Usage:
+#   First run (builds images):   docker compose -f docker-compose.dev.yml up --build
+#   Subsequent runs:             docker compose -f docker-compose.dev.yml up
+#   Rebuild after dep changes:   docker compose -f docker-compose.dev.yml up --build
+#
+# Backend:  source is volume-mounted; uvicorn --reload restarts on every .py save.
+# Frontend: Vite dev server with HMR — browser updates without a full page reload.
+#           No npm install or vite build needed after the first image build.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: navigation-backend-dev
+    volumes:
+      - skyfield_data:/app/skyfield_data
+      - ./backend/src:/app/src          # mount source so --reload picks up changes
+    environment:
+      - ENV=development
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"                     # expose for direct API testing / curl
+    networks:
+      - navigation-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: navigation-frontend-dev
+    volumes:
+      - ./frontend:/app                 # live source mount — Vite HMR watches this
+      - /app/node_modules               # anonymous volume keeps image node_modules intact
+    environment:
+      - VITE_API_TARGET=http://backend:8000   # proxy target inside Docker network
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - navigation-network
+    restart: unless-stopped
+
+networks:
+  navigation-network:
+    driver: bridge
+
+volumes:
+  skyfield_data:
