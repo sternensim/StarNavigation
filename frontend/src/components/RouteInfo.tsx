@@ -55,6 +55,17 @@ interface RouteInfoProps {
   onCalculate: () => void;
 }
 
+const bearingToCardinal = (bearing: number): string => {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  return dirs[Math.round(bearing / 45) % 8];
+};
+
+const getAltitudeColor = (altitude: number): string => {
+  if (altitude < 20) return '#fb8c00'; // orange — low in sky, may be hazy
+  if (altitude < 45) return '#43a047'; // green  — good viewing angle
+  return '#1e88e5';                    // blue   — high up, best visibility
+};
+
 const getReasonColor = (reason: StopReason): 'success' | 'warning' | 'info' => {
   switch (reason) {
     case 'target_reached':
@@ -370,9 +381,33 @@ const RouteInfo: React.FC<RouteInfoProps> = ({
                           }
                           secondary={
                             waypoint.reference_object && (
-                              <Typography variant="caption" color="text.secondary">
-                                via {waypoint.reference_object.name} ({waypoint.reference_object.object_type})
-                              </Typography>
+                              <Box component="span" sx={{ display: 'block' }}>
+                                <Typography component="span" variant="caption" color="text.secondary">
+                                  via {waypoint.reference_object.name} ({waypoint.reference_object.object_type})
+                                </Typography>
+                                {waypoint.reference_object.altitude != null && (
+                                  <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                    <Typography component="span" variant="caption" color="text.secondary" sx={{ minWidth: 52 }}>
+                                      {waypoint.reference_object.altitude.toFixed(1)}° alt
+                                    </Typography>
+                                    {/* Altitude bar: 0° = horizon, 90° = zenith */}
+                                    <Box component="span" sx={{ flex: 1, height: 4, bgcolor: 'action.hover', borderRadius: 2, overflow: 'hidden' }}>
+                                      <Box component="span" sx={{
+                                        display: 'block',
+                                        width: `${Math.min((waypoint.reference_object.altitude / 90) * 100, 100)}%`,
+                                        height: '100%',
+                                        bgcolor: getAltitudeColor(waypoint.reference_object.altitude),
+                                        borderRadius: 2,
+                                      }} />
+                                    </Box>
+                                    {waypoint.reference_object.azimuth != null && (
+                                      <Typography component="span" variant="caption" color="text.secondary" sx={{ minWidth: 24, textAlign: 'right' }}>
+                                        {bearingToCardinal(waypoint.reference_object.azimuth)}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                )}
+                              </Box>
                             )
                           }
                         />
