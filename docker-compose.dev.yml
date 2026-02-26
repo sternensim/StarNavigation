@@ -22,7 +22,7 @@ services:
       - ENV=development
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
-      - "8000:8000"                     # expose for direct API testing / curl
+      - "0.0.0.0:8000:8000"            # explicit all-interface binding (required for non-localhost access)
     networks:
       - navigation-network
     restart: unless-stopped
@@ -37,8 +37,12 @@ services:
       - /app/node_modules               # anonymous volume keeps image node_modules intact
     environment:
       - VITE_API_TARGET=http://backend:8000   # proxy target inside Docker network
+      # Set VITE_HMR_HOST to the Docker host's IP or hostname so the browser
+      # connects HMR websockets to the right address when accessing remotely.
+      # e.g. add  VITE_HMR_HOST=192.168.1.100  to a .env.dev file or export it
+      # before running compose. Leave unset when accessing from localhost.
     ports:
-      - "5173:5173"
+      - "0.0.0.0:5173:5173"            # explicit all-interface binding
     depends_on:
       - backend
     networks:
