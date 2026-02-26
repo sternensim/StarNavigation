@@ -9,9 +9,11 @@ import pytest
 from src.api.models import CelestialObject, Position
 from src.core.navigation import (
     MAX_TARGET_REACHED_CUTOFF_KM,
+    MIN_COMFORTABLE_ALTITUDE_DEG,
     TARGET_REACHED_CUTOFF_PERCENTAGE,
     NavigationError,
     NavigationState,
+    calculate_navigation_route,
     calculate_target_reached_cutoff,
     positions_equal,
     select_best_celestial_object,
@@ -278,3 +280,74 @@ class TestNavigationError:
     def test_message(self):
         err = NavigationError("test message")
         assert str(err) == "test message"
+
+
+# ---------------------------------------------------------------------------
+# Comfortable visibility mode
+# ---------------------------------------------------------------------------
+
+def _make_star(name, azimuth, altitude):
+    return CelestialObject(
+        name=name, right_ascension=1.0, declination=0.0, magnitude=2.0,
+        object_type="star", azimuth=azimuth, altitude=altitude, is_visible=True,
+    )
+
+
+class TestComfortableMode:
+    def test_constant_matches_ui_green_threshold(self):
+        # Must stay in sync with getAltitudeColor() in RouteInfo.tsx (< 20 = orange)
+        assert MIN_COMFORTABLE_ALTITUDE_DEG == 20.0
+
+    def test_comfortable_route_skips_low_stars(self):
+        """Comfortable mode must avoid low-altitude stars when better ones exist."""
+        # Both stars are due north (azimuth 0°) — identical bearing to the target.
+        # LowStar is listed first so select_best_celestial_object would pick it in
+        # normal mode (strict < means first-in-list wins a tie).
+        # In comfortable mode LowStar (5° alt) is filtered out, HighStar (60°) wins.
+        low_star  = _make_star("LowStar",  azimuth=0.0, altitude=5.0)   # < 20° → excluded
+        high_star = _make_star("HighStar", azimuth=0.0, altitude=60.0)  # >= 20° → kept
+
+        def get_visible(position, time, used_objects, **kwargs):
+            return [s for s in [low_star, high_star] if s.name not in used_objects]
+
+        def get_position(obj, position, *args):
+            return obj.azimuth, obj.altitude
+
+        from datetime import datetime
+        route = calculate_navigation_route(
+            start_position=Position(latitude=0.0, longitude=0.0),
+            target_position=Position(latitude=0.045, longitude=0.0),  # ~5 km north
+            get_visible_objects_func=get_visible,
+            get_object_position_func=get_position,
+            observation_time=datetime(2024, 6, 21, 22, 0, 0),
+            step_size_km=50.0,
+            max_iterations=20,
+            optimize_for="comfortable",
+        )
+        # LowStar was never used — only HighStar navigated the route
+        assert "LowStar" not in route.used_objects
+        assert "HighStar" in route.used_objects
+
+    def test_comfortable_falls_back_when_all_stars_are_low(self):
+        """If no star meets the altitude threshold, fall back and still find a route."""
+        only_low = _make_star("OnlyLow", azimuth=0.0, altitude=5.0)  # below threshold
+
+        def get_visible(position, time, used_objects, **kwargs):
+            return [only_low] if only_low.name not in used_objects else []
+
+        def get_position(obj, position, *args):
+            return obj.azimuth, obj.altitude
+
+        from datetime import datetime
+        route = calculate_navigation_route(
+            start_position=Position(latitude=0.0, longitude=0.0),
+            target_position=Position(latitude=0.045, longitude=0.0),
+            get_visible_objects_func=get_visible,
+            get_object_position_func=get_position,
+            observation_time=datetime(2024, 6, 21, 22, 0, 0),
+            step_size_km=50.0,
+            max_iterations=20,
+            optimize_for="comfortable",
+        )
+        # Fell back to the only available star
+        assert "OnlyLow" in route.used_objects

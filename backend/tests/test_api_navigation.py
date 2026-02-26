@@ -391,6 +391,17 @@ class TestCalculateEndpoint:
         assert resp.status_code == 200
         assert len(resp.json()["routes"]) >= 1
 
+    def test_max_routes_3_includes_comfortable_route(self, client):
+        with patch(self.PATCH_VISIBLE, side_effect=mock_get_visible), \
+             patch(self.PATCH_POSITION, side_effect=mock_get_object_position):
+            resp = self._post(client, self._base_payload(max_routes=3))
+        assert resp.status_code == 200
+        routes = resp.json()["routes"]
+        ids = [r["id"] for r in routes]
+        labels = [r["label"] for r in routes]
+        assert "comfortable" in ids
+        assert "Comfortable Visibility" in labels
+
     def test_waypoints_have_position(self, client):
         with patch(self.PATCH_VISIBLE, side_effect=mock_get_visible), \
              patch(self.PATCH_POSITION, side_effect=mock_get_object_position):

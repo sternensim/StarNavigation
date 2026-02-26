@@ -22,6 +22,11 @@ MAX_TARGET_REACHED_CUTOFF_KM = 5.0
 # Target reached cutoff as percentage of total route distance
 TARGET_REACHED_CUTOFF_PERCENTAGE = 0.05
 
+# Minimum altitude (degrees above horizon) considered "comfortable" to navigate by.
+# Stars below this angle are close to the horizon — harder to spot, subject to
+# atmospheric refraction and haze.  Matches the orange/green threshold in the UI.
+MIN_COMFORTABLE_ALTITUDE_DEG = 20.0
+
 
 class NavigationError(Exception):
     """Exception raised for navigation errors."""
@@ -380,10 +385,21 @@ def calculate_navigation_route(
         # Filter for planets only if requested
         if planets_only:
             visible_objects = [
-                obj for obj in visible_objects 
+                obj for obj in visible_objects
                 if obj.object_type in ["planet", "moon", "sun"]
             ]
-        
+
+        # For "comfortable" mode: prefer objects high enough to be easy to spot
+        # (altitude >= MIN_COMFORTABLE_ALTITUDE_DEG).  Fall back to all visible
+        # objects only if nothing comfortable is available at this step.
+        if optimize_for == "comfortable":
+            comfortable = [
+                obj for obj in visible_objects
+                if obj.altitude is not None and obj.altitude >= MIN_COMFORTABLE_ALTITUDE_DEG
+            ]
+            if comfortable:
+                visible_objects = comfortable
+
         if not visible_objects:
             raise NavigationError(
                 f"No visible celestial objects available at position "

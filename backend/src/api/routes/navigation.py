@@ -95,109 +95,51 @@ async def calculate_route(request: NavigationRequest):
                 # If alternative route fails, just continue with what we have
                 pass
         
-        # Route 3: Alternative (Exclude most used object from shortest)
-        if request.max_routes > 2 and routes:
-            # Try different exclusion strategies to ensure we get a 3rd route
-            exclusion_strategies = []
-            
-            # Strategy 1: Exclude the first object of the shortest route
-            if routes[0].used_objects:
-                exclusion_strategies.append({routes[0].used_objects[0]})
-            
-            # Strategy 2: Exclude the first object of the second route (if different)
-            if len(routes) > 1 and routes[1].used_objects:
-                first_obj_r2 = routes[1].used_objects[0]
-                if not exclusion_strategies or first_obj_r2 not in exclusion_strategies[0]:
-                    exclusion_strategies.append({first_obj_r2})
-            
-            # Strategy 3: Exclude both first objects
-            if len(exclusion_strategies) > 1:
-                exclusion_strategies.append(exclusion_strategies[0] | exclusion_strategies[1])
+        # Route 3: Comfortable Visibility (only stars >= 20° above horizon)
+        if request.max_routes > 2:
+            try:
+                comfortable_route = calculate_navigation_route(
+                    start_position=request.start,
+                    target_position=request.target,
+                    get_visible_objects_func=get_visible_objects,
+                    get_object_position_func=get_object_position,
+                    observation_time=observation_time,
+                    step_size_km=request.step_size_km,
+                    max_iterations=request.max_iterations,
+                    prioritize_major=request.prioritize_major,
+                    planets_only=request.planets_only,
+                    optimize_for="comfortable"
+                )
+                comfortable_route.id = "comfortable"
+                comfortable_route.label = "Comfortable Visibility"
+                routes.append(comfortable_route)
+            except NavigationError:
+                pass
 
-            success = False
-            for excluded in exclusion_strategies:
-                try:
-                    alt_route_3 = calculate_navigation_route(
-                        start_position=request.start,
-                        target_position=request.target,
-                        get_visible_objects_func=get_visible_objects,
-                        get_object_position_func=get_object_position,
-                        observation_time=observation_time,
-                        step_size_km=request.step_size_km,
-                        max_iterations=request.max_iterations,
-                        prioritize_major=request.prioritize_major,
-                        planets_only=request.planets_only,
-                        excluded_objects=excluded,
-                        optimize_for="shortest"
-                    )
-                    
-                    # Check if this route is actually different from existing ones
-                    is_duplicate = False
-                    for existing in routes:
-                        if (len(existing.waypoints) == len(alt_route_3.waypoints) and
-                            existing.used_objects == alt_route_3.used_objects):
-                            is_duplicate = True
-                            break
-                    
-                    if not is_duplicate:
-                        alt_route_3.id = "alternative"
-                        alt_route_3.label = "Alternative Route"
-                        routes.append(alt_route_3)
-                        success = True
-                        break
-                except NavigationError:
-                    continue
-            
-            # If still no 3rd route, try a different optimization or slightly different start
-            if not success:
-                try:
-                    # Try with a different optimization if not already tried
-                    alt_route_3 = calculate_navigation_route(
-                        start_position=request.start,
-                        target_position=request.target,
-                        get_visible_objects_func=get_visible_objects,
-                        get_object_position_func=get_object_position,
-                        observation_time=observation_time,
-                        step_size_km=request.step_size_km * 1.5, # Slightly different step size
-                        max_iterations=request.max_iterations,
-                        prioritize_major=not request.prioritize_major, # Flip prioritization
-                        planets_only=request.planets_only,
-                        optimize_for="shortest"
-                    )
-                    alt_route_3.id = "alternative"
-                    alt_route_3.label = "Alternative Route"
-                    routes.append(alt_route_3)
-                except NavigationError:
-                    pass
-        
-        # Sort routes by total distance to ensure "Shortest Path" is actually the shortest
-        # and update labels accordingly
+        # Sort by distance, then re-assign labels — the comfortable route keeps its
+        # identity regardless of where it falls in the distance ranking.
         if routes:
-            # Sort by distance
             routes.sort(key=lambda r: r.total_distance)
-            
-            # Re-assign labels based on properties
-            # The first one is now definitely the shortest
-            routes[0].label = "Shortest Path"
-            routes[0].id = "shortest"
-            
-            # If we have more, label them appropriately
-            if len(routes) > 1:
-                # Find the one with fewest waypoints (if it's not the shortest)
-                # We use a stable sort or just find the one with min waypoints
-                # that isn't already labeled as shortest
-                fewest_wp_route = min(routes, key=lambda r: len(r.waypoints))
-                
-                for i, r in enumerate(routes):
-                    if i == 0:
-                        continue # Already labeled as shortest
-                        
-                    if r == fewest_wp_route:
-                        r.label = "Fewest Waypoints"
-                        r.id = "least_changes"
-                    else:
-                        r.label = f"Alternative Route {i}"
-                        r.id = f"alternative_{i}"
+
+            non_comfortable = [r for r in routes if r.id != "comfortable"]
+
+            if non_comfortable:
+                non_comfortable[0].label = "Shortest Path"
+                non_comfortable[0].id = "shortest"
+
+                if len(non_comfortable) > 1:
+                    fewest_wp = min(non_comfortable[1:], key=lambda r: len(r.waypoints))
+                    for i, r in enumerate(non_comfortable[1:], 1):
+                        if r is fewest_wp:
+                            r.label = "Fewest Waypoints"
+                            r.id = "least_changes"
+                        else:
+                            r.label = f"Alternative Route {i}"
+                            r.id = f"alternative_{i}"
+
+            for r in routes:
+                if r.id == "comfortable":
+                    r.label = "Comfortable Visibility"
                 
         return NavigationResponse(routes=routes)
         
