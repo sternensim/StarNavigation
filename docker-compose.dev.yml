@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Development compose file — optimised for fast iteration.
 #
 # Usage:
